@@ -93,7 +93,6 @@ export default function CommunityReportsScreen({ onOpenAddReport }) {
               {/* Author Row */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
-                  {/* Avatar Circle */}
                   <div className="w-10 h-10 rounded-full bg-[#ffedd5] border border-[#fed7aa] flex items-center justify-center text-[#9a3412] font-bold text-xs">
                     {report.initials}
                   </div>
@@ -115,7 +114,6 @@ export default function CommunityReportsScreen({ onOpenAddReport }) {
                   </div>
                 </div>
 
-                {/* Right Badge */}
                 {report.badge.type === 'distance' && (
                   <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-slate-500" />
@@ -138,25 +136,24 @@ export default function CommunityReportsScreen({ onOpenAddReport }) {
               {/* Actions Footer */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-slate-500">
                 <div className="flex items-center gap-4">
-                  {/* Like */}
                   <button 
                     onClick={() => handleLike(report.id)}
                     className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
-                      report.isLiked ? 'text-[#c2410c]' : 'hover:text-slate-900'
+                      report.isLiked 
+                        ? 'text-[#c2410c]' 
+                        : 'hover:text-slate-900'
                     }`}
                   >
                     <ThumbsUp className={`w-4 h-4 ${report.isLiked ? 'fill-[#c2410c]' : ''}`} />
                     <span>{report.likes}</span>
                   </button>
 
-                  {/* Comments */}
                   <button className="flex items-center gap-1.5 text-xs font-semibold hover:text-slate-900 transition-colors">
                     <MessageSquare className="w-4 h-4" />
                     <span>{report.comments}</span>
                   </button>
                 </div>
 
-                {/* Share */}
                 <button 
                   onClick={() => handleShare(report)}
                   className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"

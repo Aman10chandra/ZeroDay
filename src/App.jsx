@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import PhoneMockup from './components/PhoneMockup';
 import BottomNav from './components/BottomNav';
 import HomeScreen from './screens/HomeScreen';
@@ -66,7 +66,6 @@ export default function App() {
       osc.type = 'sawtooth';
       gainNode.gain.setValueAtTime(0.12, ctx.currentTime);
 
-      // Modulate frequency for warble effect
       const now = ctx.currentTime;
       for (let i = 0; i < 20; i++) {
         osc.frequency.setValueAtTime(650, now + i * 0.5);
@@ -79,7 +78,6 @@ export default function App() {
       oscRef.current = osc;
 
       setIsSirenActive(true);
-      // Auto stop after 6 seconds
       setTimeout(() => {
         stopSiren();
       }, 6000);
@@ -105,7 +103,6 @@ export default function App() {
     setIsSirenActive(false);
   };
 
-  // Notification feedback after broadcast
   const handleConfirmManualAlert = (data) => {
     startSiren();
     alert(`🚨 EMERGENCY BROADCAST DISPATCHED!\nSeverity: ${data.severity.toUpperCase()}\nMessage: ${data.customMessage}`);
@@ -181,14 +178,13 @@ export default function App() {
         onTabChange={handleTabChange} 
       />
 
-      {/* Emergency Broadcast Modal */}
+      {/* Modals */}
       <ManualAlertModal 
         isOpen={manualAlertOpen}
         onClose={() => setManualAlertOpen(false)}
         onConfirm={handleConfirmManualAlert}
       />
 
-      {/* Citizen Report Modal */}
       <AddReportModal 
         isOpen={addReportOpen}
         onClose={() => setAddReportOpen(false)}
@@ -197,7 +193,6 @@ export default function App() {
         }}
       />
 
-      {/* Sluice Weir Hydraulic Override Modal */}
       <SluiceOverrideModal 
         isOpen={sluiceOverrideOpen}
         onClose={() => setSluiceOverrideOpen(false)}

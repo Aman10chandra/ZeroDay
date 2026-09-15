@@ -40,17 +40,14 @@ export default function RegionDetailScreen({
   const svgHeight = 120;
   const maxY = 75;
 
-  // Convert values to SVG coordinate string
   const points = currentChart.values.map((val, idx) => {
     const x = (idx / (currentChart.values.length - 1)) * (svgWidth - 40) + 25;
     const y = svgHeight - (val / maxY) * (svgHeight - 20) - 10;
     return { x, y, val, label: currentChart.labels[idx] };
   });
 
-  // Danger threshold line Y
   const dangerY = svgHeight - (50 / maxY) * (svgHeight - 20) - 10;
 
-  // Generate smooth SVG path
   const generateCurvedPath = (pts) => {
     if (pts.length < 2) return '';
     let d = `M ${pts[0].x} ${pts[0].y}`;
@@ -169,7 +166,7 @@ export default function RegionDetailScreen({
           </div>
         </div>
 
-        {/* Tab Selector: Rain History, Sensor History, Alert History */}
+        {/* Tab Selector */}
         <div className="flex items-center border-b border-slate-200">
           <button
             onClick={() => setActiveTab('rain')}
@@ -222,9 +219,7 @@ export default function RegionDetailScreen({
             </span>
           </div>
 
-          {/* Interactive Chart Container */}
           <div className="relative w-full pt-1 pb-2">
-            {/* SVG Chart */}
             <svg 
               viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
               className="w-full h-32 overflow-visible select-none"
@@ -236,7 +231,6 @@ export default function RegionDetailScreen({
                 </linearGradient>
               </defs>
 
-              {/* Y Axis Grid lines */}
               {[75, 50, 25, 0].map((val) => {
                 const yPos = svgHeight - (val / maxY) * (svgHeight - 20) - 10;
                 return (
@@ -256,7 +250,6 @@ export default function RegionDetailScreen({
                 );
               })}
 
-              {/* Danger Threshold Line (at 50 mm) */}
               <line
                 x1="22"
                 y1={dangerY}
@@ -277,10 +270,8 @@ export default function RegionDetailScreen({
                 Danger Threshold (50 mm)
               </text>
 
-              {/* Area Under Curve */}
               <path d={areaPath} fill="url(#rainGradient)" />
 
-              {/* Red Line */}
               <path 
                 d={linePath} 
                 fill="none" 
@@ -289,7 +280,6 @@ export default function RegionDetailScreen({
                 strokeLinecap="round" 
               />
 
-              {/* Dots on points */}
               {points.map((pt, i) => (
                 <g key={i} className="cursor-pointer">
                   <circle
@@ -302,7 +292,6 @@ export default function RegionDetailScreen({
                     onMouseEnter={() => setHoveredPoint(pt)}
                     onMouseLeave={() => setHoveredPoint(null)}
                   />
-                  {/* Tooltip on hover */}
                   {hoveredPoint && hoveredPoint.label === pt.label && (
                     <g>
                       <rect 
@@ -329,7 +318,6 @@ export default function RegionDetailScreen({
               ))}
             </svg>
 
-            {/* X-axis date labels */}
             <div className="flex justify-between items-center px-4 mt-1 text-[10.5px] text-slate-400">
               {currentChart.labels.map((lbl, idx) => (
                 <span 
@@ -342,7 +330,6 @@ export default function RegionDetailScreen({
             </div>
           </div>
 
-          {/* Telemetry Span Toggle */}
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-xs">
             <span className="text-slate-500 font-medium">Telemetry Span</span>
             <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
@@ -375,27 +362,22 @@ export default function RegionDetailScreen({
             </div>
           </div>
 
-          {/* Sluice Gate Real Photo / Banner */}
           <div className="relative h-44 w-full bg-slate-900">
             <img 
               src="/sluice_gate.jpg" 
               alt="Rampur Weir #3 Barrier" 
               className="w-full h-full object-cover opacity-90"
               onError={(e) => {
-                // Fallback image if needed
                 e.target.src = "https://images.unsplash.com/photo-1574974671999-24b7df56753f?auto=format&fit=crop&w=800&q=80";
               }}
             />
-            {/* Dark overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-            {/* Live blinking tag */}
             <div className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               CAM-02 WEIR GATE
             </div>
 
-            {/* Bottom info banner with Override button */}
             <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
               <div>
                 <h4 className="text-[13.5px] font-bold text-white tracking-tight leading-tight drop-shadow-sm">
@@ -587,7 +569,7 @@ export default function RegionDetailScreen({
           </div>
         </div>
 
-        {/* Action Buttons: Export Telemetry & Issue Siren */}
+        {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 pt-1">
           <button 
             onClick={() => alert("Downloading telemetry sensor dataset (CSV/JSON)...")}

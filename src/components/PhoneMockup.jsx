@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2, AlertOctagon } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2 } from 'lucide-react';
 
 export default function PhoneMockup({ 
   children, 
@@ -16,7 +16,6 @@ export default function PhoneMockup({
       const now = new Date();
       const hours = now.getHours();
       const mins = now.getMinutes().toString().padStart(2, '0');
-      // Format 12-hour or standard
       setCurrentTime(`${hours % 12 || 12}:${mins}`);
     };
     updateClock();
@@ -35,11 +34,13 @@ export default function PhoneMockup({
 
   return (
     <div className={`min-h-screen w-full transition-colors duration-300 ${
-      forcePureMobile ? 'bg-[#f8fafc] p-0' : 'bg-gradient-to-br from-[#0b0f19] via-[#111827] to-[#0f172a] sm:py-8 sm:px-4 flex flex-col items-center justify-center'
+      forcePureMobile 
+        ? 'bg-[#f8fafc] p-0' 
+        : 'bg-gradient-to-br from-[#070a12] via-[#0b0f19] to-[#0f172a] sm:py-8 sm:px-4 flex flex-col items-center justify-center'
     }`}>
-      {/* Desktop Presentation Bar (Hidden on mobile or when toggled to pure view) */}
+      {/* Desktop Presentation Bar */}
       {!forcePureMobile && (
-        <div className="hidden sm:flex flex-wrap items-center justify-between w-full max-w-4xl mb-6 px-4 py-2.5 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl text-xs text-slate-300">
+        <div className="hidden sm:flex flex-wrap items-center justify-between w-full max-w-4xl mb-6 px-4 py-2.5 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl text-xs text-slate-300">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
             <span className="font-bold text-white tracking-tight text-sm">
@@ -50,7 +51,7 @@ export default function PhoneMockup({
             </span>
           </div>
 
-          {/* Quick jump to the 5 screenshots */}
+          {/* Quick jump to the 6 screens */}
           <div className="flex items-center gap-1.5 my-1">
             {screenNames.map((s) => (
               <button
@@ -95,27 +96,24 @@ export default function PhoneMockup({
 
       {/* Center Phone Frame Wrapper */}
       <div className="relative flex items-center justify-center w-full">
-        {/* Outer Phone Mockup Frame (Active on desktop when not in pure mode) */}
+        {/* Outer Phone Mockup Frame */}
         <div 
           className={`relative transition-all duration-300 ${
             forcePureMobile 
-              ? 'w-full min-h-screen rounded-none shadow-none p-0 bg-[#f8fafc]' 
+              ? 'w-full min-h-screen rounded-none shadow-none p-0' 
               : 'w-full sm:w-[412px] sm:h-[864px] sm:p-3 sm:rounded-[52px] sm:bg-gradient-to-b sm:from-slate-700 sm:via-slate-800 sm:to-slate-900 sm:shadow-[0_25px_70px_rgba(0,0,0,0.8),0_10px_30px_rgba(0,0,0,0.5)] sm:ring-1 sm:ring-white/15'
           }`}
         >
-          {/* Hardware buttons on phone edges (Only on desktop frame) */}
+          {/* Hardware buttons on phone edges */}
           {!forcePureMobile && (
             <>
-              {/* Volume Up */}
               <div className="hidden sm:block absolute -left-[2px] top-28 w-[3px] h-10 bg-slate-600 rounded-l-sm" />
-              {/* Volume Down */}
               <div className="hidden sm:block absolute -left-[2px] top-42 w-[3px] h-10 bg-slate-600 rounded-l-sm" />
-              {/* Power button */}
               <div className="hidden sm:block absolute -right-[2px] top-32 w-[3px] h-14 bg-slate-600 rounded-r-sm" />
             </>
           )}
 
-          {/* Phone Screen Glass */}
+          {/* Phone Screen Glass Container */}
           <div 
             className={`w-full h-full bg-[#f8fafc] overflow-hidden flex flex-col relative transition-all ${
               forcePureMobile 
@@ -123,26 +121,23 @@ export default function PhoneMockup({
                 : 'sm:rounded-[42px] sm:border sm:border-slate-800 sm:h-[840px]'
             }`}
           >
-            {/* Siren Strobe Overlay if active */}
+            {/* Siren Strobe Overlay */}
             {isSirenActive && (
               <div className="absolute inset-0 bg-red-600/20 z-50 pointer-events-none animate-pulse border-4 border-red-600" />
             )}
 
             {/* Mobile Top Status Bar */}
             <div className="flex-shrink-0 bg-white px-6 pt-3 pb-1 flex items-center justify-between text-slate-800 select-none z-30">
-              {/* Left: Time */}
               <span className="text-[14px] font-semibold tracking-tight pl-1">
                 {currentTime}
               </span>
 
-              {/* Center: Dynamic Island Capsule (Desktop frame view) */}
               {!forcePureMobile && (
                 <div className="hidden sm:flex items-center justify-center w-24 h-5 bg-black rounded-full shadow-inner">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#111] border border-neutral-800 ml-auto mr-2" />
                 </div>
               )}
 
-              {/* Right: Signal, Wifi, Battery */}
               <div className="flex items-center gap-1.5 pr-1">
                 <Signal className="w-3.5 h-3.5 fill-slate-800 stroke-none" />
                 <Wifi className="w-3.5 h-3.5 stroke-[2.2]" />

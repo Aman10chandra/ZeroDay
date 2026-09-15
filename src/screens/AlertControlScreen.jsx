@@ -11,7 +11,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [meshEnabled, setMeshEnabled] = useState(true);
 
-  // Compute active channels count
   const activeCount = (pushEnabled ? 1 : 0) + (smsEnabled ? 1 : 0) + (meshEnabled ? 1 : 0);
 
   return (
@@ -19,7 +18,7 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
       {/* Top Header */}
       <TopHeader currentRegion="All Regions" />
 
-      {/* Subheader with Back Arrow, Title, and Auto Mode Toggle */}
+      {/* Subheader */}
       <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
@@ -57,7 +56,7 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-4">
-        {/* Info Banner: Auto mode active */}
+        {/* Info Banner */}
         <div className="bg-[#fef3eb] border border-[#fed7aa] rounded-2xl p-3 flex items-start gap-2.5 shadow-sm">
           <CheckCircle2 className="w-5 h-5 text-[#c2410c] flex-shrink-0 mt-0.5" />
           <p className="text-[12.5px] text-slate-700 font-medium leading-snug">
@@ -91,7 +90,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                   </div>
                 </div>
 
-                {/* Toggle */}
                 <button
                   onClick={() => setPushEnabled(!pushEnabled)}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
@@ -110,7 +108,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 Sends alerts through ZeroDay mobile app
               </p>
 
-              {/* Tags */}
               <div className="flex items-center gap-2 mt-2">
                 <span className="bg-[#ffedd5] text-[#9a3412] text-[11px] font-semibold px-2 py-0.5 rounded-md">
                   Requires app
@@ -120,7 +117,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 </span>
               </div>
 
-              {/* Footer delivery stats */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
                 <span>1,240 users · Avg 2s delivery</span>
                 <span>Last: 4:12 PM</span>
@@ -141,7 +137,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                   </div>
                 </div>
 
-                {/* Toggle */}
                 <button
                   onClick={() => setSmsEnabled(!smsEnabled)}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
@@ -160,7 +155,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 Reaches all registered phones — no app needed
               </p>
 
-              {/* Tags */}
               <div className="flex items-center gap-2 mt-2">
                 <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">
                   No app required
@@ -170,7 +164,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 </span>
               </div>
 
-              {/* Footer delivery stats */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
                 <span>8,450 numbers · Hindi & English</span>
                 <span>Last: 4:12 PM</span>
@@ -191,7 +184,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                   </div>
                 </div>
 
-                {/* Toggle */}
                 <button
                   onClick={() => setMeshEnabled(!meshEnabled)}
                   className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
@@ -210,12 +202,10 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 Works without cell towers or grid power
               </p>
 
-              {/* Mesh Nodes Status: 9 / 12 and Dots */}
               <div className="flex items-center justify-between mt-3">
                 <span className="text-xs font-bold text-slate-900">
                   9 / 12 nodes online
                 </span>
-                {/* 12 node indicators: 9 rust/brown, 3 grey */}
                 <div className="flex items-center gap-1.5">
                   {[...Array(9)].map((_, i) => (
                     <span key={i} className="w-2 h-2 rounded-full bg-[#9a3412]" />
@@ -226,7 +216,6 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
                 </div>
               </div>
 
-              {/* Footer mesh stats */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
                 <span>2.4 km cluster coverage</span>
                 <span className="font-semibold text-slate-700">Battery 92%</span>
@@ -235,7 +224,7 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
           </div>
         </div>
 
-        {/* Primary Action: Send Manual Alert */}
+        {/* Primary Action */}
         <div className="flex flex-col items-center gap-2 pt-1">
           <button
             onClick={onOpenManualAlert}

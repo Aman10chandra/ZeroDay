@@ -39,7 +39,7 @@ export default function EvacuationRouteScreen({ onBack }) {
       {/* Top Header */}
       <TopHeader currentRegion="All Regions" />
 
-      {/* Subheader: Evacuation route + GPS Live */}
+      {/* Subheader */}
       <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
@@ -62,7 +62,7 @@ export default function EvacuationRouteScreen({ onBack }) {
         </div>
       </div>
 
-      {/* Filter Chips: Sensors, Shelters, Hazards */}
+      {/* Filter Chips */}
       <div className="px-4 py-2.5 bg-white border-b border-slate-100 flex items-center gap-2 select-none overflow-x-auto no-scrollbar">
         {['Sensors', 'Shelters', 'Hazards'].map((filter) => {
           const isSelected = activeFilter === filter.toLowerCase();
@@ -85,25 +85,21 @@ export default function EvacuationRouteScreen({ onBack }) {
       <div className="px-4 py-3 flex flex-col gap-3.5">
         {/* Interactive Map Visual Container */}
         <div className="relative w-full h-[270px] bg-[#f8fafc] rounded-2xl overflow-hidden border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.04)] select-none">
-          {/* SVG Map Graphics */}
           <svg className="w-full h-full" viewBox="0 0 350 270" preserveAspectRatio="none">
             <defs>
-              {/* Grid pattern */}
               <pattern id="mapGrid" width="35" height="35" patternUnits="userSpaceOnUse">
                 <path d="M 35 0 L 0 0 0 35" fill="none" stroke="#e2e8f0" strokeWidth="0.75" />
               </pattern>
             </defs>
 
-            {/* Background Grid */}
             <rect width="100%" height="100%" fill="url(#mapGrid)" />
 
-            {/* River Stream (soft blue curving water body) */}
+            {/* River Stream */}
             <path
               d="M -20 220 C 80 215, 140 240, 240 225 C 290 220, 330 230, 380 220 L 380 270 L -20 270 Z"
               fill="#e0f2fe"
               opacity="0.85"
             />
-            {/* Submerged river tributary */}
             <path
               d="M -20 200 C 60 210, 130 180, 220 120 C 260 90, 300 80, 380 70"
               fill="none"
@@ -121,7 +117,7 @@ export default function EvacuationRouteScreen({ onBack }) {
               opacity="0.6"
             />
 
-            {/* Roads & Secondary trails */}
+            {/* Roads */}
             <path
               d="M 50 250 L 160 180 L 175 140 L 200 135"
               fill="none"
@@ -130,8 +126,7 @@ export default function EvacuationRouteScreen({ onBack }) {
               strokeLinecap="round"
             />
 
-            {/* Evacuation Safe Route (Thick Orange/Rust Dashed Path) */}
-            {/* Starts near Civil Lines (65, 205), avoids bridge (160, 150), heads to Shelter (280, 75) */}
+            {/* Route */}
             <path
               d="M 65 205 Q 120 170 145 130 T 215 95 T 280 75"
               fill="none"
@@ -141,13 +136,12 @@ export default function EvacuationRouteScreen({ onBack }) {
               strokeLinecap="round"
             />
 
-            {/* Hazard Node: Submerged Bridge (at 160, 145) */}
+            {/* Hazard Node */}
             <circle cx="160" cy="145" r="14" fill="#fee2e2" opacity="0.6" />
             <circle cx="160" cy="145" r="6" fill="#ef4444" />
           </svg>
 
-          {/* Map Badges and Markers overlaid on map */}
-          {/* 1. Safe Route Active Badge (Top Left) */}
+          {/* Map Badges */}
           <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#16a34a]" />
             <span className="text-[11px] font-bold text-slate-800">
@@ -155,23 +149,20 @@ export default function EvacuationRouteScreen({ onBack }) {
             </span>
           </div>
 
-          {/* 2. Compass N (Top Right) */}
           <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-lg px-2 py-0.5 text-[11px] font-extrabold text-slate-700 shadow-sm flex items-center gap-0.5">
             <span>N</span>
             <span className="text-slate-500">↑</span>
           </div>
 
-          {/* 3. Hazard Pin Callout: Bypass: Bridge Submerged */}
           <div className="absolute top-[180px] left-3 bg-[#fee2e2] border border-red-200 rounded-full px-2.5 py-0.5 flex items-center gap-1.5 shadow-sm">
             <span className="text-[11px] font-bold text-[#b91c1c]">
               ⊘ Bypass: Bridge Submerged
             </span>
           </div>
 
-          {/* 4. Origin Marker: You (Civil Lines) */}
+          {/* Origin */}
           <div className="absolute top-[148px] left-2">
             <div className="relative flex items-center">
-              {/* Radar ring animation */}
               <div className="absolute -left-1 -top-1 w-6 h-6 rounded-full bg-[#ea580c]/30 animate-ping" />
               <div className="w-4 h-4 rounded-full bg-[#c2410c] border-2 border-white flex items-center justify-center shadow-md z-10" />
               <div className="ml-1.5 bg-white/95 backdrop-blur-sm border border-slate-200 px-2 py-0.5 rounded-full shadow-sm">
@@ -183,10 +174,9 @@ export default function EvacuationRouteScreen({ onBack }) {
             </div>
           </div>
 
-          {/* 5. Destination Marker: Shelter */}
+          {/* Destination */}
           <div className="absolute top-[60px] right-6">
             <div className="relative flex items-center flex-row-reverse">
-              {/* Green target ring */}
               <div className="w-6 h-6 rounded-full bg-[#16a34a]/20 border-2 border-[#16a34a] flex items-center justify-center shadow-md">
                 <div className="w-2 h-2 rounded-full bg-[#16a34a]" />
               </div>
@@ -199,13 +189,12 @@ export default function EvacuationRouteScreen({ onBack }) {
             </div>
           </div>
 
-          {/* 6. Elevation Tag (Bottom Right) */}
           <div className="absolute bottom-2.5 right-2.5 bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-md px-2 py-0.5 text-[11px] font-semibold text-slate-700 shadow-sm">
             Elevation: <span className="font-bold">+14m</span>
           </div>
         </div>
 
-        {/* Primary Selected Destination Card: Govt. School, Rampur */}
+        {/* Primary Selected Destination Card */}
         <div className="bg-[#fff9f6] rounded-2xl p-4 border border-[#fed7aa]/80 shadow-[0_2px_8px_rgba(194,65,12,0.06)]">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
@@ -242,7 +231,7 @@ export default function EvacuationRouteScreen({ onBack }) {
           </div>
         </div>
 
-        {/* Alternate Options Section */}
+        {/* Alternate Options */}
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11.5px] font-extrabold text-slate-500 tracking-wider uppercase">
@@ -276,7 +265,7 @@ export default function EvacuationRouteScreen({ onBack }) {
           </div>
         </div>
 
-        {/* Assistance Hotline Banner */}
+        {/* Assistance Hotline */}
         <div className="bg-[#eef4ff] border border-blue-100 rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
           <span className="text-base">🚨</span>
           <p className="text-[12px] text-slate-700 font-medium">
