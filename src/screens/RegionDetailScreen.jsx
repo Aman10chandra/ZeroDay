@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Droplets, Waves, Radio, TrendingUp, AlertTriangle, 
-  Download, BellRing, Video, ChevronRight, BarChart2, Plus, MapPin
+  Download, BellRing, Video, ChevronRight, BarChart2, Plus, MapPin, Activity, ShieldAlert
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
@@ -10,7 +10,8 @@ export default function RegionDetailScreen({
   onOpenSluiceOverride, 
   onIssueSiren,
   onOpenAddShelter,
-  onOpenEvacuationMap
+  onOpenEvacuationMap,
+  onShowToast
 }) {
   const [activeTab, setActiveTab] = useState('rain');
   const [telemetrySpan, setTelemetrySpan] = useState('7D');
@@ -107,21 +108,21 @@ export default function RegionDetailScreen({
 
       <div className="px-4 py-3 flex flex-col gap-4">
         {/* Disaster Inundation Emergency Card */}
-        <div className="bg-[#fef2f2] border-2 border-red-200 rounded-2xl p-3.5 shadow-sm flex flex-col gap-2.5">
+        <div className="bg-[#fff1f2] border border-rose-200 rounded-2xl p-3.5 shadow-sm flex flex-col gap-2.5">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#dc2626] animate-ping" />
-              <h3 className="text-sm font-black text-[#991b1b] tracking-tight uppercase">
-                Flash Inundation Disaster Active
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
+              <h3 className="text-xs font-bold text-rose-900 tracking-wider uppercase">
+                SDRF Red Alert: Basin Sector 4B
               </h3>
             </div>
-            <span className="text-[10.5px] font-extrabold bg-[#fee2e2] text-[#991b1b] px-2 py-0.5 rounded-md border border-red-300">
-              Zone 04
+            <span className="text-[10.5px] font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-md border border-rose-200">
+              Datum Exceeded +1.6m
             </span>
           </div>
           
-          <p className="text-[12px] text-slate-700 leading-snug">
-            Rainfall 62mm/hr has breached lower retention embankment. Sluice gate backflow threatens 1,240 homes in Basin 4B.
+          <p className="text-[12px] text-slate-700 leading-relaxed font-normal">
+            Precipitation inflow 62 mm/hr has overrun the retention embankment. Embankment backflow threatens 1,240 households in low quadrants.
           </p>
 
           <div className="grid grid-cols-2 gap-2 pt-0.5">
@@ -130,7 +131,7 @@ export default function RegionDetailScreen({
               className="bg-[#9a3412] hover:bg-[#7c2d12] text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
             >
               <Plus className="w-3.5 h-3.5" strokeWidth={3} />
-              <span>Add Shelter Points</span>
+              <span>Stage Shelter Havens</span>
             </button>
 
             <button
@@ -138,7 +139,7 @@ export default function RegionDetailScreen({
               className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
             >
               <MapPin className="w-3.5 h-3.5 text-[#c2410c]" />
-              <span>Evacuation Map</span>
+              <span>Evacuation Corridor</span>
             </button>
           </div>
         </div>
@@ -200,7 +201,8 @@ export default function RegionDetailScreen({
               <span className="text-lg font-black text-slate-900">Online</span>
             </div>
             <div className="text-[11px] font-medium text-slate-500 mt-1 flex items-center gap-1">
-              <span>📶 Telemetry 99.4%</span>
+              <Activity className="w-3 h-3 text-emerald-600" />
+              <span>Uptime 99.4% · 5s sync</span>
             </div>
           </div>
         </div>
@@ -611,7 +613,7 @@ export default function RegionDetailScreen({
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 pt-1">
           <button 
-            onClick={() => alert("Downloading telemetry sensor dataset (CSV/JSON)...")}
+            onClick={() => onShowToast ? onShowToast("Telemetry dataset exported (JSON/CSV · 4,820 readings)", "success") : null}
             className="flex items-center justify-center gap-2 bg-[#e8f0fe] hover:bg-[#dbeafe] text-[#1e40af] font-bold text-xs py-3 rounded-xl transition-all shadow-sm active:scale-95"
           >
             <Download className="w-4 h-4" />

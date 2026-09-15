@@ -12,6 +12,7 @@ import AddReportModal from './components/AddReportModal';
 import SluiceOverrideModal from './components/SluiceOverrideModal';
 import DispatchRouteModal from './components/DispatchRouteModal';
 import ResidentAlertBanner from './components/ResidentAlertBanner';
+import Toast from './components/Toast';
 
 export default function App() {
   // Screen routing
@@ -20,6 +21,13 @@ export default function App() {
 
   // Role: 'admin' | 'resident'
   const [userRole, setUserRole] = useState('admin');
+
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Modals state
   const [manualAlertOpen, setManualAlertOpen] = useState(false);
@@ -132,7 +140,7 @@ export default function App() {
 
   const handleConfirmManualAlert = (data) => {
     startSiren();
-    alert(`🚨 EMERGENCY BROADCAST DISPATCHED!\nSeverity: ${data.severity.toUpperCase()}\nMessage: ${data.customMessage}`);
+    showToast(`Disaster broadcast transmitted via SMS, Push & BLE Mesh (${data.severity.toUpperCase()})`, 'warning');
   };
 
   // Open "Add Shelter Points" directly from Rampur Ward card
@@ -160,25 +168,27 @@ export default function App() {
   const handleConfirmDispatch = (dispatchData) => {
     setDispatchedRouteData(dispatchData);
     setResidentAlert(dispatchData);
-    // Play a brief high-alert notification beep
+    showToast(`Evacuation corridor to ${dispatchData.shelter?.name || "Govt. School"} transmitted to 1,240 nodes`, 'success');
+    
+    // Play a crisp high-priority alert chime
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       const ctx = new AudioCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc.frequency.setValueAtTime(780, ctx.currentTime);
+      osc.frequency.setValueAtTime(1040, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.4);
+      osc.stop(ctx.currentTime + 0.35);
     } catch (e) {}
   };
 
-  // Resident taps "View Escape Route" on the banner
+  // Resident taps "Open Evacuation Path" on the banner
   const handleViewResidentRoute = () => {
     setCurrentScreen('map');
     setBottomNavTab('map');
@@ -213,6 +223,13 @@ export default function App() {
         onDismiss={() => setResidentAlert(null)}
       />
 
+      {/* Toast Notification */}
+      <Toast 
+        message={toast?.message} 
+        type={toast?.type} 
+        onDismiss={() => setToast(null)} 
+      />
+
       {/* Active Screen View */}
       <div className="flex-1 flex flex-col">
         {currentScreen === 'home' && (
@@ -231,6 +248,7 @@ export default function App() {
             onIssueSiren={toggleSiren}
             onOpenAddShelter={handleOpenAddShelter}
             onOpenEvacuationMap={handleOpenEvacuationMap}
+            onShowToast={showToast}
           />
         )}
 
@@ -262,11 +280,14 @@ export default function App() {
         {currentScreen === 'reports' && (
           <CommunityReportsScreen 
             onOpenAddReport={() => setAddReportOpen(true)}
+            onShowToast={showToast}
           />
         )}
 
         {currentScreen === 'settings' && (
-          <SettingsScreen />
+          <SettingsScreen 
+            onShowToast={showToast}
+          />
         )}
       </div>
 
@@ -287,7 +308,7 @@ export default function App() {
         isOpen={addReportOpen}
         onClose={() => setAddReportOpen(false)}
         onAdd={(report) => {
-          alert(`Report posted: "${report.body}"`);
+          showToast(`Advisory posted for telemetry verification: "${report.body.slice(0, 45)}..."`, "success");
         }}
       />
 

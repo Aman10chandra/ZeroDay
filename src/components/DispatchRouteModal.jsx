@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, ShieldCheck, Radio, MessageSquare, Bell, CheckCircle2, AlertTriangle, MapPin } from 'lucide-react';
+import { X, Send, Radio, MessageSquare, Bell, MapPin, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 export default function DispatchRouteModal({ 
   isOpen, 
@@ -12,7 +12,7 @@ export default function DispatchRouteModal({
   const [includeSms, setIncludeSms] = useState(true);
   const [includePush, setIncludePush] = useState(true);
   const [includeMesh, setIncludeMesh] = useState(true);
-  const [customNote, setCustomNote] = useState("Avoid submerged Rampur Bridge. Follow Upper Ridge Track to Govt School.");
+  const [customNote, setCustomNote] = useState("Avoid submerged Rampur Bridge. Follow Upper Ridge Track to Govt. Senior Secondary School.");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -25,11 +25,11 @@ export default function DispatchRouteModal({
         shelter: selectedShelter,
         note: customNote,
         channels: { push: includePush, sms: includeSms, mesh: includeMesh },
-        targetUsers: "1,240 Residents in Zone 04",
+        targetUsers: "1,240 Registered Citizens · Sector 4B",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
       onClose();
-    }, 700);
+    }, 600);
   };
 
   return (
@@ -40,16 +40,16 @@ export default function DispatchRouteModal({
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-[#fee2e2] text-[#b91c1c] flex items-center justify-center font-bold">
-              <Send className="w-4 h-4" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+              <Send className="w-4 h-4 text-[#9a3412]" />
             </div>
             <div>
-              <h3 className="text-[17px] font-bold text-slate-900 leading-tight">
-                Dispatch Escape Route
+              <h3 className="text-[16.5px] font-bold text-slate-900 leading-tight">
+                Emergency Route Dispatch
               </h3>
               <p className="text-[11.5px] text-slate-500 font-medium">
-                Admin Broadcast to Affected Residents
+                Incident Command Center · District Operations
               </p>
             </div>
           </div>
@@ -57,37 +57,37 @@ export default function DispatchRouteModal({
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Target & Designated Shelter Overview */}
-        <div className="bg-[#fef3eb] border border-[#fed7aa] rounded-2xl p-3 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#9a3412]">
-            <span className="flex items-center gap-1">
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+            <span className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-[#c2410c]" />
               Target: {wardName}
             </span>
-            <span className="bg-[#ffedd5] px-2 py-0.5 rounded-md text-[10.5px]">
-              1,240 Residents
+            <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md text-[10.5px] text-slate-600 font-mono">
+              1,240 Citizens
             </span>
           </div>
           <div className="text-[12.5px] text-slate-800 font-medium leading-snug">
-            Designated Shelter: <strong className="text-slate-950 font-bold">{selectedShelter?.name || "Govt. School, Rampur"}</strong>
+            Designated Refuge: <strong className="text-slate-900 font-bold">{selectedShelter?.name || "Govt. School, Rampur"}</strong>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-slate-600">
-            <span>Elevation: {selectedShelter?.elevation || "+14m"}</span>
-            <span>•</span>
-            <span>Capacity: {selectedShelter?.capacity || "200"} people</span>
-            <span>•</span>
-            <span className="text-[#16a34a] font-bold">{totalShelters} Pins Active</span>
+          <div className="flex items-center gap-2 text-[11px] text-slate-500">
+            <span>Elevation: {selectedShelter?.elevation || "+14m MSL"}</span>
+            <span>·</span>
+            <span>Capacity: {selectedShelter?.capacity || "200"}</span>
+            <span>·</span>
+            <span className="text-emerald-700 font-semibold">{totalShelters} Staged Sites</span>
           </div>
         </div>
 
         {/* Evacuation Instruction Note */}
         <div>
-          <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1">
-            Evacuation Instructions
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+            Civil Advisory & Routing Guidance
           </label>
           <textarea
             value={customNote}
@@ -99,8 +99,8 @@ export default function DispatchRouteModal({
 
         {/* Broadcast Channels Selection */}
         <div>
-          <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block mb-2">
-            Broadcast Channels
+          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">
+            Dissemination Layers
           </label>
           <div className="grid grid-cols-3 gap-2">
             <button
@@ -126,7 +126,7 @@ export default function DispatchRouteModal({
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="text-[10.5px] font-bold">SMS (Hindi)</span>
+              <span className="text-[10.5px] font-bold">SMS (CAP)</span>
             </button>
 
             <button
@@ -139,7 +139,7 @@ export default function DispatchRouteModal({
               }`}
             >
               <Radio className="w-4 h-4" />
-              <span className="text-[10.5px] font-bold">BLE Mesh</span>
+              <span className="text-[10.5px] font-bold">Sub-GHz Mesh</span>
             </button>
           </div>
         </div>
@@ -157,14 +157,14 @@ export default function DispatchRouteModal({
             type="button"
             disabled={isSubmitting}
             onClick={handleDispatch}
-            className="flex-1 py-2.5 rounded-xl bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-orange-900/20 active:scale-95 transition-all disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-xl bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-orange-950/15 active:scale-95 transition-all disabled:opacity-50"
           >
             {isSubmitting ? (
               <span>Broadcasting...</span>
             ) : (
               <>
                 <Send className="w-3.5 h-3.5" />
-                <span>Dispatch Route</span>
+                <span>Transmit Directive</span>
               </>
             )}
           </button>

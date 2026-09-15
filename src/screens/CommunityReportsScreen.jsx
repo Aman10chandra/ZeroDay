@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
-export default function CommunityReportsScreen({ onOpenAddReport }) {
+export default function CommunityReportsScreen({ onOpenAddReport, onShowToast }) {
   const [reports, setReports] = useState([
     {
       id: 1,
@@ -55,7 +55,9 @@ export default function CommunityReportsScreen({ onOpenAddReport }) {
         url: window.location.href,
       }).catch(() => {});
     } else {
-      alert("Report link copied to clipboard!");
+      if (onShowToast) {
+        onShowToast("Advisory link copied to clipboard", "success");
+      }
     }
   };
 
@@ -104,7 +106,7 @@ export default function CommunityReportsScreen({ onOpenAddReport }) {
                       </span>
                       {report.isVerified && (
                         <span className="w-4 h-4 rounded-full bg-[#22c55e] text-white flex items-center justify-center text-[10px] font-black">
-                          ✓
+                          <Check className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />
                         </span>
                       )}
                     </div>

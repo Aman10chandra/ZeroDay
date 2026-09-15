@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, ShieldCheck, Check, Navigation, PhoneCall, 
-  Compass, AlertOctagon, Building2, User, Info, MapPin, 
+  Compass, AlertOctagon, Building2, User, Users, Info, MapPin, 
   Plus, ZoomIn, ZoomOut, Send, CheckCircle2, Eye, ShieldAlert,
   Layers, ChevronRight, X
 } from 'lucide-react';
@@ -410,8 +410,9 @@ export default function EvacuationRouteScreen({
 
           {/* Bridge Submerged Hazard Warning Tag */}
           <div className="absolute top-[175px] left-3 bg-[#fee2e2] border border-red-200 rounded-full px-2.5 py-0.5 flex items-center gap-1.5 shadow-sm">
+            <AlertOctagon className="w-3 h-3 text-[#b91c1c]" />
             <span className="text-[10.5px] font-bold text-[#b91c1c]">
-              ⊘ Submerged Bridge Avoided
+              Bypass Active: Rampur Bridge Inundated
             </span>
           </div>
 
@@ -431,23 +432,23 @@ export default function EvacuationRouteScreen({
         {userRole === 'admin' && isAddingMode && (
           <div className="bg-white rounded-2xl p-3 border border-orange-200 shadow-sm flex flex-col gap-2">
             <span className="text-[11px] font-bold text-[#9a3412] uppercase tracking-wide">
-              Quick Pin High-Ground Havens:
+              Pre-surveyed Relief Staging Grounds:
             </span>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => handleAddPresetShelter("St. Mary Ridge", "2.1 km", "+22m", "180", 250, 60)}
+                onClick={() => handleAddPresetShelter("St. Mary Ridge", "2.1 km", "+22m MSL", "180", 250, 60)}
                 className="text-left p-2 rounded-xl bg-orange-50/60 border border-orange-200/70 hover:bg-orange-100/50 transition-colors"
               >
                 <div className="text-xs font-bold text-slate-900">+ St. Mary Ridge</div>
-                <div className="text-[10px] text-slate-500">Elev: +22m · Cap: 180</div>
+                <div className="text-[10px] text-slate-500">Elev: +22m MSL · Cap: 180</div>
               </button>
 
               <button
-                onClick={() => handleAddPresetShelter("Relief Ground West", "3.0 km", "+17m", "250", 180, 50)}
+                onClick={() => handleAddPresetShelter("Relief Ground West", "3.0 km", "+17m MSL", "250", 180, 50)}
                 className="text-left p-2 rounded-xl bg-orange-50/60 border border-orange-200/70 hover:bg-orange-100/50 transition-colors"
               >
                 <div className="text-xs font-bold text-slate-900">+ Relief Ground West</div>
-                <div className="text-[10px] text-slate-500">Elev: +17m · Cap: 250</div>
+                <div className="text-[10px] text-slate-500">Elev: +17m MSL · Cap: 250</div>
               </button>
             </div>
           </div>
@@ -474,13 +475,14 @@ export default function EvacuationRouteScreen({
 
           <div className="mt-2.5 text-[12px] text-slate-600 space-y-1">
             <div className="flex items-center gap-1.5">
-              <span>👥 Capacity {selectedShelter.capacity} evacuees</span>
+              <Users className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+              <span>Capacity: {selectedShelter.capacity} evacuees</span>
               <span className="text-slate-300">·</span>
               <span>Bypasses landslide hazard zone</span>
             </div>
             <div className="flex items-center gap-1 text-[#16a34a] font-semibold text-[11.5px]">
               <Check className="w-3.5 h-3.5" strokeWidth={3} />
-              <span>Medical triage, rations & potable water operational</span>
+              <span>Medical triage, emergency rations & clean water ready</span>
             </div>
           </div>
 
@@ -491,7 +493,7 @@ export default function EvacuationRouteScreen({
                 className="w-full bg-[#9a3412] hover:bg-[#7c2d12] text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Broadcast Route to Affected Users</span>
+                <span>Broadcast Directive to Affected Citizens</span>
               </button>
             ) : (
               <button
@@ -499,7 +501,7 @@ export default function EvacuationRouteScreen({
                 className="w-full bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all"
               >
                 <Navigation className="w-3.5 h-3.5 fill-white rotate-45" />
-                <span>{navigationStarted ? "Turn-by-Turn Navigating (GPS Active)..." : "Start Live Turn-by-Turn GPS"}</span>
+                <span>{navigationStarted ? "GPS Turn-by-Turn Active..." : "Start Turn-by-Turn GPS Navigation"}</span>
               </button>
             )}
           </div>
@@ -509,7 +511,7 @@ export default function EvacuationRouteScreen({
         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-extrabold text-slate-500 tracking-wider uppercase">
-              PINNED SHELTER HAVENS ({shelterPoints.length})
+              STAGED RELIEF HAVENS ({shelterPoints.length})
             </span>
             <span className="text-xs text-slate-400 font-semibold">
               Select to route
@@ -552,8 +554,8 @@ export default function EvacuationRouteScreen({
         </div>
 
         {/* Emergency Assistance Hotline */}
-        <div className="bg-[#eef4ff] border border-blue-100 rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
-          <span className="text-base">🚨</span>
+        <div className="bg-slate-100 border border-slate-200/80 rounded-2xl p-3 flex items-center gap-2.5 shadow-sm">
+          <PhoneCall className="w-4 h-4 text-[#1e40af] flex-shrink-0" />
           <p className="text-[12px] text-slate-700 font-medium">
             Emergency Hotline: If stranded on route,{' '}
             <a 

@@ -152,8 +152,8 @@ export default function HomeScreen({ onSelectRegionDetail }) {
                         {region.name}
                       </h4>
                       {region.id === 'rampur' && (
-                        <span className="bg-[#fee2e2] text-[#991b1b] border border-red-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse">
-                          Disaster Active
+                        <span className="bg-[#fee2e2] text-[#991b1b] border border-red-200 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                          SDRF Red Alert
                         </span>
                       )}
                     </div>

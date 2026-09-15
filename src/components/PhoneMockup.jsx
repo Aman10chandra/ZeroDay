@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2, Shield, User, Zap } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2, Shield, User, Radio } from 'lucide-react';
 
 export default function PhoneMockup({ 
   children, 
@@ -86,11 +86,11 @@ export default function PhoneMockup({
             {/* Disaster Simulation Trigger */}
             <button
               onClick={onTriggerDisaster}
-              className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition-all"
-              title="Simulate Disaster Escalation in Rampur Ward"
+              className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800 transition-all"
+              title="Activate Incident Directive: Rampur Basin 4B"
             >
-              <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
-              <span>Disaster Active</span>
+              <Radio className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+              <span>Incident Directive</span>
             </button>
 
             <button

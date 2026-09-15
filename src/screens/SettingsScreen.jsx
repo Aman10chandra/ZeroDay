@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ onShowToast }) {
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [offlineMaps, setOfflineMaps] = useState(true);
   const [sirenOnEmergency, setSirenOnEmergency] = useState(false);
@@ -191,7 +191,7 @@ export default function SettingsScreen() {
         {/* Sign Out Button */}
         <div className="pt-1">
           <button 
-            onClick={() => alert("Signing out of ZeroDay...")}
+            onClick={() => onShowToast ? onShowToast("Session ended. Signed out securely.", "info") : null}
             className="flex items-center gap-2.5 text-[#c2410c] hover:text-[#9a3412] font-bold text-[15px] px-1 py-2 transition-colors active:opacity-75"
           >
             <LogOut className="w-5 h-5 text-[#c2410c]" strokeWidth={2.4} />
