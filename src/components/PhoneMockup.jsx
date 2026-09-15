@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2 } from 'lucide-react';
+import { Wifi, BatteryMedium, Signal, Smartphone, Maximize2, Minimize2, Volume2, Shield, User, Zap } from 'lucide-react';
 
 export default function PhoneMockup({ 
   children, 
   activeScreen, 
   onNavigateScreen, 
   isSirenActive,
-  onToggleSiren 
+  onToggleSiren,
+  userRole = 'admin',
+  onToggleRole,
+  onTriggerDisaster
 }) {
   const [currentTime, setCurrentTime] = useState('9:41');
   const [forcePureMobile, setForcePureMobile] = useState(false);
@@ -68,8 +71,28 @@ export default function PhoneMockup({
             ))}
           </div>
 
-          {/* Controls: Siren & Frame Toggle */}
+          {/* Controls: Role Switcher, Disaster Trigger, Siren & Frame Toggle */}
           <div className="flex items-center gap-2">
+            {/* Role Switcher */}
+            <button
+              onClick={onToggleRole}
+              className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-orange-400 border border-slate-700 transition-all"
+              title="Switch Perspective: Admin vs Affected Resident"
+            >
+              {userRole === 'admin' ? <Shield className="w-3.5 h-3.5 text-orange-400" /> : <User className="w-3.5 h-3.5 text-green-400" />}
+              <span>{userRole === 'admin' ? 'Role: Admin' : 'Role: Resident'}</span>
+            </button>
+
+            {/* Disaster Simulation Trigger */}
+            <button
+              onClick={onTriggerDisaster}
+              className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition-all"
+              title="Simulate Disaster Escalation in Rampur Ward"
+            >
+              <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+              <span>Disaster Active</span>
+            </button>
+
             <button
               onClick={onToggleSiren}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${

@@ -10,16 +10,29 @@ import SettingsScreen from './screens/SettingsScreen';
 import ManualAlertModal from './components/ManualAlertModal';
 import AddReportModal from './components/AddReportModal';
 import SluiceOverrideModal from './components/SluiceOverrideModal';
+import DispatchRouteModal from './components/DispatchRouteModal';
+import ResidentAlertBanner from './components/ResidentAlertBanner';
 
 export default function App() {
   // Screen routing
   const [currentScreen, setCurrentScreen] = useState('home');
   const [bottomNavTab, setBottomNavTab] = useState('home');
 
+  // Role: 'admin' | 'resident'
+  const [userRole, setUserRole] = useState('admin');
+
   // Modals state
   const [manualAlertOpen, setManualAlertOpen] = useState(false);
   const [addReportOpen, setAddReportOpen] = useState(false);
   const [sluiceOverrideOpen, setSluiceOverrideOpen] = useState(false);
+  const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
+
+  // Disaster & Shelter state
+  const [isAddingShelterMode, setIsAddingShelterMode] = useState(false);
+  const [selectedShelterForDispatch, setSelectedShelterForDispatch] = useState(null);
+  const [totalSheltersForDispatch, setTotalSheltersForDispatch] = useState(3);
+  const [dispatchedRouteData, setDispatchedRouteData] = useState(null);
+  const [residentAlert, setResidentAlert] = useState(null);
 
   // Siren Audio & Visual alert state
   const [isSirenActive, setIsSirenActive] = useState(false);
@@ -29,11 +42,25 @@ export default function App() {
   // Sync bottom nav tab with current screen
   const handleTabChange = (tabId) => {
     setBottomNavTab(tabId);
-    if (tabId === 'home') setCurrentScreen('home');
-    else if (tabId === 'map') setCurrentScreen('map');
-    else if (tabId === 'alerts') setCurrentScreen('alerts');
-    else if (tabId === 'sensors') setCurrentScreen('detail');
-    else if (tabId === 'settings') setCurrentScreen('settings');
+    if (tabId === 'home') {
+      setCurrentScreen('home');
+      setIsAddingShelterMode(false);
+    }
+    else if (tabId === 'map') {
+      setCurrentScreen('map');
+    }
+    else if (tabId === 'alerts') {
+      setCurrentScreen('alerts');
+      setIsAddingShelterMode(false);
+    }
+    else if (tabId === 'sensors') {
+      setCurrentScreen('detail');
+      setIsAddingShelterMode(false);
+    }
+    else if (tabId === 'settings') {
+      setCurrentScreen('settings');
+      setIsAddingShelterMode(false);
+    }
   };
 
   // Direct screen selection (e.g. tapping Rampur Ward from Home)
@@ -108,6 +135,56 @@ export default function App() {
     alert(`🚨 EMERGENCY BROADCAST DISPATCHED!\nSeverity: ${data.severity.toUpperCase()}\nMessage: ${data.customMessage}`);
   };
 
+  // Open "Add Shelter Points" directly from Rampur Ward card
+  const handleOpenAddShelter = () => {
+    setIsAddingShelterMode(true);
+    setCurrentScreen('map');
+    setBottomNavTab('map');
+  };
+
+  // Open Evacuation Map from Ward
+  const handleOpenEvacuationMap = () => {
+    setIsAddingShelterMode(false);
+    setCurrentScreen('map');
+    setBottomNavTab('map');
+  };
+
+  // Open Dispatch Modal from Map screen
+  const handleOpenDispatchModal = (shelter, totalCount) => {
+    setSelectedShelterForDispatch(shelter);
+    setTotalSheltersForDispatch(totalCount);
+    setDispatchModalOpen(true);
+  };
+
+  // Admin broadcasts escape route to residents
+  const handleConfirmDispatch = (dispatchData) => {
+    setDispatchedRouteData(dispatchData);
+    setResidentAlert(dispatchData);
+    // Play a brief high-alert notification beep
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+    } catch (e) {}
+  };
+
+  // Resident taps "View Escape Route" on the banner
+  const handleViewResidentRoute = () => {
+    setCurrentScreen('map');
+    setBottomNavTab('map');
+    setUserRole('resident');
+  };
+
   return (
     <PhoneMockup 
       activeScreen={currentScreen} 
@@ -122,7 +199,20 @@ export default function App() {
       }}
       isSirenActive={isSirenActive}
       onToggleSiren={toggleSiren}
+      userRole={userRole}
+      onToggleRole={() => setUserRole(prev => prev === 'admin' ? 'resident' : 'admin')}
+      onTriggerDisaster={() => {
+        setCurrentScreen('detail');
+        setBottomNavTab('sensors');
+      }}
     >
+      {/* Resident Alert Notification Banner */}
+      <ResidentAlertBanner 
+        alertData={residentAlert}
+        onViewRoute={handleViewResidentRoute}
+        onDismiss={() => setResidentAlert(null)}
+      />
+
       {/* Active Screen View */}
       <div className="flex-1 flex flex-col">
         {currentScreen === 'home' && (
@@ -139,6 +229,8 @@ export default function App() {
             }}
             onOpenSluiceOverride={() => setSluiceOverrideOpen(true)}
             onIssueSiren={toggleSiren}
+            onOpenAddShelter={handleOpenAddShelter}
+            onOpenEvacuationMap={handleOpenEvacuationMap}
           />
         )}
 
@@ -157,7 +249,13 @@ export default function App() {
             onBack={() => {
               setCurrentScreen('home');
               setBottomNavTab('home');
+              setIsAddingShelterMode(false);
             }}
+            userRole={userRole}
+            onToggleRole={() => setUserRole(prev => prev === 'admin' ? 'resident' : 'admin')}
+            isAddingShelterInitially={isAddingShelterMode}
+            onOpenDispatchModal={handleOpenDispatchModal}
+            dispatchedRouteData={dispatchedRouteData}
           />
         )}
 
@@ -196,6 +294,16 @@ export default function App() {
       <SluiceOverrideModal 
         isOpen={sluiceOverrideOpen}
         onClose={() => setSluiceOverrideOpen(false)}
+      />
+
+      {/* Admin Dispatch Route Modal */}
+      <DispatchRouteModal 
+        isOpen={dispatchModalOpen}
+        onClose={() => setDispatchModalOpen(false)}
+        onConfirmDispatch={handleConfirmDispatch}
+        selectedShelter={selectedShelterForDispatch}
+        totalShelters={totalSheltersForDispatch}
+        wardName="Rampur Ward"
       />
     </PhoneMockup>
   );

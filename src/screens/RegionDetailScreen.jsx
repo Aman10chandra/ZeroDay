@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Droplets, Waves, Radio, TrendingUp, AlertTriangle, 
-  Download, BellRing, Video, ChevronRight, BarChart2
+  Download, BellRing, Video, ChevronRight, BarChart2, Plus, MapPin
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
 export default function RegionDetailScreen({ 
   onBack, 
   onOpenSluiceOverride, 
-  onIssueSiren 
+  onIssueSiren,
+  onOpenAddShelter,
+  onOpenEvacuationMap
 }) {
   const [activeTab, setActiveTab] = useState('rain');
   const [telemetrySpan, setTelemetrySpan] = useState('7D');
@@ -104,6 +106,43 @@ export default function RegionDetailScreen({
       </div>
 
       <div className="px-4 py-3 flex flex-col gap-4">
+        {/* Disaster Inundation Emergency Card */}
+        <div className="bg-[#fef2f2] border-2 border-red-200 rounded-2xl p-3.5 shadow-sm flex flex-col gap-2.5">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#dc2626] animate-ping" />
+              <h3 className="text-sm font-black text-[#991b1b] tracking-tight uppercase">
+                Flash Inundation Disaster Active
+              </h3>
+            </div>
+            <span className="text-[10.5px] font-extrabold bg-[#fee2e2] text-[#991b1b] px-2 py-0.5 rounded-md border border-red-300">
+              Zone 04
+            </span>
+          </div>
+          
+          <p className="text-[12px] text-slate-700 leading-snug">
+            Rainfall 62mm/hr has breached lower retention embankment. Sluice gate backflow threatens 1,240 homes in Basin 4B.
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 pt-0.5">
+            <button
+              onClick={onOpenAddShelter}
+              className="bg-[#9a3412] hover:bg-[#7c2d12] text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={3} />
+              <span>Add Shelter Points</span>
+            </button>
+
+            <button
+              onClick={onOpenEvacuationMap}
+              className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+            >
+              <MapPin className="w-3.5 h-3.5 text-[#c2410c]" />
+              <span>Evacuation Map</span>
+            </button>
+          </div>
+        </div>
+
         {/* 2x2 Metric Grid */}
         <div className="grid grid-cols-2 gap-2.5">
           {/* Rainfall */}

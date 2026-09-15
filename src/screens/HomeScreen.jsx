@@ -147,9 +147,16 @@ export default function HomeScreen({ onSelectRegionDetail }) {
                     style={{ backgroundColor: region.dotColor }} 
                   />
                   <div>
-                    <h4 className="text-[15.5px] font-bold text-slate-900 tracking-tight">
-                      {region.name}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-[15.5px] font-bold text-slate-900 tracking-tight">
+                        {region.name}
+                      </h4>
+                      {region.id === 'rampur' && (
+                        <span className="bg-[#fee2e2] text-[#991b1b] border border-red-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider animate-pulse">
+                          Disaster Active
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[12.5px] text-slate-500 font-normal mt-0.5 leading-snug">
                       {region.rainfall} rainfall · {region.status}
                     </p>
