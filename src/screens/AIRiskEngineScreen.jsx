@@ -74,38 +74,40 @@ export default function AIRiskEngineScreen({
       <TopHeader currentRegion="Risk Engine" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
-            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
-            title="Return"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight leading-tight">
-              Risk model pipeline
-            </h1>
-            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-              CatBoost susceptibility + LSTM live trigger
-            </p>
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onBack}
+              className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+              title="Return"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight leading-tight">
+                Risk model pipeline
+              </h1>
+              <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+                CatBoost susceptibility + LSTM live trigger
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Territory Selector */}
-        <select 
-          value={selectedVillage} 
-          onChange={(e) => setSelectedVillage(e.target.value)}
-          className="bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] text-xs font-mono px-2 py-1 rounded-[4px] border border-[#D8D4CA] dark:border-[#2A302D] outline-none"
-        >
-          <option value="rampur">Rampur Ward</option>
-          <option value="bhelupur">Bhelupur Ridge</option>
-          <option value="kotdwar">Kotdwar Valley</option>
-        </select>
+          {/* Territory Selector */}
+          <select 
+            value={selectedVillage} 
+            onChange={(e) => setSelectedVillage(e.target.value)}
+            className="bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] text-xs font-mono px-2 py-1 rounded-[4px] border border-[#D8D4CA] dark:border-[#2A302D] outline-none"
+          >
+            <option value="rampur">Rampur Ward</option>
+            <option value="bhelupur">Bhelupur Ridge</option>
+            <option value="kotdwar">Kotdwar Valley</option>
+          </select>
+        </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* The Combined Decision as the Single Boxed Hero Block */}
         <section 
           role="region"

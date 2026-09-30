@@ -85,8 +85,8 @@ export default function ToolsScreen({
   return (
     <div className="flex flex-col min-h-full bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] pb-28 pb-[calc(6rem+env(safe-area-inset-bottom))] transition-colors select-none">
       {/* Header */}
-      <header className="px-4 py-3 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
-        <div className="flex items-center justify-between">
+      <header className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-[20px] font-sans font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] leading-tight">
               Tools
@@ -102,7 +102,7 @@ export default function ToolsScreen({
       </header>
 
       {/* Main Container */}
-      <main className="p-4 space-y-4">
+      <main className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* Three rows in one container with 8px radius and 1px dividers */}
         <section 
           aria-label="Engineering tool modules"

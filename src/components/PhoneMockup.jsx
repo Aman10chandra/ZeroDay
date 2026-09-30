@@ -122,13 +122,13 @@ export default function PhoneMockup({
         </div>
       </aside>
 
-      {/* Main Content Area: Centered 400px column on desktop, edge-to-edge on mobile */}
-      <main className="flex-1 flex justify-center items-start sm:py-6 sm:px-4">
+      {/* Main Content Area: Full responsive website on desktop/laptop, edge-to-edge on mobile */}
+      <main className="flex-1 w-full flex flex-col">
         <div 
-          className={`w-full min-h-screen sm:min-h-0 sm:h-[844px] sm:max-w-[400px] flex flex-col relative transition-colors duration-150 sm:border rounded sm:rounded-[8px] overflow-hidden ${
+          className={`w-full flex-1 flex flex-col relative transition-colors duration-150 ${
             isOpsMode 
-              ? 'bg-[#171B19] border-[#2A302D] text-[#ECEAE4]' 
-              : 'bg-[#FAF9F6] border-[#D8D4CA] text-[#1A1D1B]'
+              ? 'bg-[#171B19] text-[#ECEAE4]' 
+              : 'bg-[#FAF9F6] text-[#1A1D1B]'
           }`}
         >
           {/* Calm siren indicator: a 2px top border stripe when siren active, no screen flash */}
@@ -136,8 +136,8 @@ export default function PhoneMockup({
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#C1271D] z-50 animate-slow-pulse" />
           )}
 
-          {/* Scrollable application container */}
-          <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative">
+          {/* Application container */}
+          <div className="flex-1 w-full flex flex-col">
             {children}
           </div>
         </div>

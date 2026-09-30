@@ -60,31 +60,33 @@ export default function RegionDetailScreen({
       <TopHeader currentRegion="Rampur Ward" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
-            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
-            title="Return to territories overview"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight leading-tight">
-              Rampur Ward
-            </h1>
-            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-              Sector 4B Basin · South Sub-catchment
-            </p>
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onBack}
+              className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+              title="Return to territories overview"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight leading-tight">
+                Rampur Ward
+              </h1>
+              <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+                Sector 4B Basin · South Sub-catchment
+              </p>
+            </div>
           </div>
-        </div>
 
-        <span className="text-[11px] font-mono tracking-wider uppercase font-semibold text-[#C1271D] dark:text-[#D9382E] px-1.5 py-0.5 border border-[#C1271D]/40 dark:border-[#D9382E]/40 rounded-[4px]">
-          Critical
-        </span>
+          <span className="text-[11px] font-mono tracking-wider uppercase font-semibold text-[#C1271D] dark:text-[#D9382E] px-1.5 py-0.5 border border-[#C1271D]/40 dark:border-[#D9382E]/40 rounded-[4px]">
+            Critical
+          </span>
+        </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* Single Boxed Hero Element: Emergency Directive (3px top border + tinted bg) */}
         <section 
           role="alert"
@@ -423,23 +425,25 @@ export default function RegionDetailScreen({
       {/* Sticky Bottom Thumb Zone Actions */}
       <aside 
         aria-label="Critical emergency actions"
-        className="fixed bottom-0 left-0 right-0 max-w-[400px] mx-auto p-3 bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20 flex items-center gap-2"
+        className="fixed bottom-0 left-0 right-0 w-full bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20 transition-colors"
       >
-        <button
-          onClick={() => onShowToast ? onShowToast("Telemetry exported: CSV dataset 4,820 records", "success") : null}
-          className="flex-1 h-11 px-3 border border-[#D8D4CA] dark:border-[#2A302D] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 text-[#1A1D1B] dark:text-[#ECEAE4] hover:bg-[#ECE9E2] dark:hover:bg-[#2A302D] transition-calm"
-        >
-          <Download className="w-4 h-4" strokeWidth={1.5} />
-          <span>Export CSV</span>
-        </button>
+        <div className="max-w-5xl mx-auto p-3 flex items-center gap-2">
+          <button
+            onClick={() => onShowToast ? onShowToast("Telemetry exported: CSV dataset 4,820 records", "success") : null}
+            className="flex-1 h-11 px-3 border border-[#D8D4CA] dark:border-[#2A302D] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 text-[#1A1D1B] dark:text-[#ECEAE4] hover:bg-[#ECE9E2] dark:hover:bg-[#2A302D] transition-calm"
+          >
+            <Download className="w-4 h-4" strokeWidth={1.5} />
+            <span>Export CSV</span>
+          </button>
 
-        <button
-          onClick={onIssueSiren}
-          className="flex-1 h-11 px-3 bg-[#C1271D] hover:bg-[#A81E15] text-white text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm"
-        >
-          <BellRing className="w-4 h-4" strokeWidth={1.5} />
-          <span>Trigger siren</span>
-        </button>
+          <button
+            onClick={onIssueSiren}
+            className="flex-1 h-11 px-3 bg-[#C1271D] hover:bg-[#A81E15] text-white text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm"
+          >
+            <BellRing className="w-4 h-4" strokeWidth={1.5} />
+            <span>Trigger siren</span>
+          </button>
+        </div>
       </aside>
     </div>
   );

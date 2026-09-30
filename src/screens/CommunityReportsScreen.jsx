@@ -74,22 +74,24 @@ export default function CommunityReportsScreen({
       <TopHeader currentRegion="Citizen Reports" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold tracking-tight leading-tight">
-            Field observations
-          </h1>
-          <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-            Citizen reports and ground truth advisories
-          </p>
-        </div>
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div>
+            <h1 className="text-base font-semibold tracking-tight leading-tight">
+              Field observations
+            </h1>
+            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+              Citizen reports and ground truth advisories
+            </p>
+          </div>
 
-        <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
-          {reports.length} submissions
-        </span>
+          <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+            {reports.length} submissions
+          </span>
+        </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* Reports Feed as Clean Rows (Divided by 1px borders) */}
         <section aria-label="Field reports feed">
           <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
@@ -163,18 +165,20 @@ export default function CommunityReportsScreen({
         </section>
       </div>
 
-      {/* Sticky Bottom Thumb Zone: File Report Button */}
+      {/* Sticky Bottom Action Zone: File Report Button */}
       <aside 
         aria-label="Submit observation action"
-        className="fixed bottom-0 left-0 right-0 max-w-[400px] mx-auto p-3 bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20"
+        className="fixed bottom-0 left-0 right-0 w-full bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20"
       >
-        <button
-          onClick={onOpenAddReport}
-          className="w-full h-11 px-4 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm hover:opacity-90"
-        >
-          <Plus className="w-4 h-4" strokeWidth={1.5} />
-          <span>Submit field observation</span>
-        </button>
+        <div className="max-w-5xl mx-auto p-3">
+          <button
+            onClick={onOpenAddReport}
+            className="w-full h-11 px-4 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm hover:opacity-90"
+          >
+            <Plus className="w-4 h-4" strokeWidth={1.5} />
+            <span>Submit field observation</span>
+          </button>
+        </div>
       </aside>
     </div>
   );

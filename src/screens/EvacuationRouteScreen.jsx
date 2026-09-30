@@ -101,64 +101,69 @@ export default function EvacuationRouteScreen({
       <TopHeader currentRegion="Evacuation Map" userRole={userRole} />
 
       {/* Subheader with Back Navigation */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
-            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
-            title="Return"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight leading-tight">
-              Evacuation corridor
-            </h1>
-            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-              Sector 4B · Avoid bridge & 36° escarpment
-            </p>
-          </div>
-        </div>
-
-        {/* Layer Segmented Control */}
-        <div className="flex bg-[#ECE9E2] dark:bg-[#121514] p-0.5 rounded-[6px] border border-[#D8D4CA] dark:border-[#2A302D] text-[11px] font-mono">
-          {[
-            { id: 'base', label: 'Base' },
-            { id: 'dem', label: 'DEM 30m' },
-            { id: 'ndwi', label: 'NDWI' },
-          ].map((l) => (
-            <button
-              key={l.id}
-              onClick={() => setActiveLayer(l.id)}
-              className={`px-2 py-0.5 rounded-[4px] transition-calm ${
-                activeLayer === l.id 
-                  ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
-                  : 'text-[#5C635E] dark:text-[#8A928D]'
-              }`}
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onBack}
+              className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+              title="Return"
             >
-              {l.label}
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             </button>
-          ))}
+            <div>
+              <h1 className="text-base font-semibold tracking-tight leading-tight">
+                Evacuation corridor
+              </h1>
+              <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+                Sector 4B · Avoid bridge & 36° escarpment
+              </p>
+            </div>
+          </div>
+
+          {/* Layer Segmented Control */}
+          <div className="flex bg-[#ECE9E2] dark:bg-[#121514] p-0.5 rounded-[6px] border border-[#D8D4CA] dark:border-[#2A302D] text-[11px] font-mono">
+            {[
+              { id: 'base', label: 'Base' },
+              { id: 'dem', label: 'DEM 30m' },
+              { id: 'ndwi', label: 'NDWI' },
+            ].map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setActiveLayer(l.id)}
+                className={`px-2 py-0.5 rounded-[4px] transition-calm ${
+                  activeLayer === l.id 
+                    ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
+                    : 'text-[#5C635E] dark:text-[#8A928D]'
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Pin Drop Notice */}
       {pinDropSuccessMessage && (
-        <div className="mx-4 mt-2 px-3 py-1.5 border border-[#2E7D4F]/40 bg-[#2E7D4F]/10 text-[#2E7D4F] dark:text-[#389E65] text-xs font-mono rounded-[6px] flex items-center justify-between">
-          <span>{pinDropSuccessMessage}</span>
-          <button onClick={() => setPinDropSuccessMessage('')}>
-            <X className="w-3.5 h-3.5" strokeWidth={1.5} />
-          </button>
+        <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 pt-3">
+          <div className="px-3 py-1.5 border border-[#2E7D4F]/40 bg-[#2E7D4F]/10 text-[#2E7D4F] dark:text-[#389E65] text-xs font-mono rounded-[6px] flex items-center justify-between">
+            <span>{pinDropSuccessMessage}</span>
+            <button onClick={() => setPinDropSuccessMessage('')}>
+              <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Hero Map Container (Full-bleed feeling within column) */}
-      <div 
-        onClick={handleMapClick}
-        className={`relative w-full h-[320px] sm:h-[350px] bg-[#ECE9E2] dark:bg-[#121514] border-b border-[#D8D4CA] dark:border-[#2A302D] overflow-hidden select-none ${
-          isAddingMode ? 'cursor-crosshair' : 'cursor-default'
-        }`}
-      >
+      {/* Hero Map Container */}
+      <div className="w-full bg-[#ECE9E2] dark:bg-[#121514] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div 
+          onClick={handleMapClick}
+          className={`relative max-w-5xl mx-auto w-full h-[320px] sm:h-[400px] overflow-hidden select-none ${
+            isAddingMode ? 'cursor-crosshair' : 'cursor-default'
+          }`}
+        >
         <svg 
           className="w-full h-full" 
           viewBox={isZoomedToShelters ? "110 10 240 190" : "0 0 350 270"} 
@@ -307,10 +312,11 @@ export default function EvacuationRouteScreen({
             Click map to place refuge
           </div>
         )}
+        </div>
       </div>
 
       {/* Bottom Sheet Controls & Selected Shelter Specs */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* Selected Haven Card (Structured Data Rows) */}
         <section aria-label="Designated haven specifications">
           <div className="py-1 mb-1.5 flex items-center justify-between">

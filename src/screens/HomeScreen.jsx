@@ -142,7 +142,7 @@ export default function HomeScreen({
         onOpenSettings={onOpenSettings}
       />
 
-      <div className="p-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full">
         {/* Error State */}
         {errorState ? (
           <section className="p-4 border border-[#C1271D] dark:border-[#D9382E] rounded-[8px] bg-[#C1271D]/[0.06] dark:bg-[#D9382E]/[0.08] flex flex-col gap-3">

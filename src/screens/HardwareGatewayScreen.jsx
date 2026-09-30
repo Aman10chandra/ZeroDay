@@ -44,51 +44,53 @@ export default function HardwareGatewayScreen({ onBack, onShowToast, userRole = 
       <TopHeader currentRegion="Hardware Gateway" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
-            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
-            title="Return"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight leading-tight">
-              Hardware gateway
-            </h1>
-            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-              LoRA 868MHz + BLE offline mesh
-            </p>
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onBack}
+              className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+              title="Return"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <div>
+              <h1 className="text-base font-semibold tracking-tight leading-tight">
+                Hardware gateway
+              </h1>
+              <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+                LoRA 868MHz + BLE offline mesh
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Segmented Control */}
-        <div className="flex bg-[#ECE9E2] dark:bg-[#121514] p-0.5 rounded-[6px] border border-[#D8D4CA] dark:border-[#2A302D] text-xs font-mono">
-          <button
-            onClick={() => setActiveTab('lora')}
-            className={`px-2.5 py-1 rounded-[4px] transition-calm ${
-              activeTab === 'lora' 
-                ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
-                : 'text-[#5C635E] dark:text-[#8A928D]'
-            }`}
-          >
-            LoRA & ESP
-          </button>
-          <button
-            onClick={() => setActiveTab('ble_mesh')}
-            className={`px-2.5 py-1 rounded-[4px] transition-calm ${
-              activeTab === 'ble_mesh' 
-                ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
-                : 'text-[#5C635E] dark:text-[#8A928D]'
-            }`}
-          >
-            BLE Mesh
-          </button>
+          {/* Segmented Control */}
+          <div className="flex bg-[#ECE9E2] dark:bg-[#121514] p-0.5 rounded-[6px] border border-[#D8D4CA] dark:border-[#2A302D] text-xs font-mono">
+            <button
+              onClick={() => setActiveTab('lora')}
+              className={`px-2.5 py-1 rounded-[4px] transition-calm ${
+                activeTab === 'lora' 
+                  ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
+                  : 'text-[#5C635E] dark:text-[#8A928D]'
+              }`}
+            >
+              LoRA & ESP
+            </button>
+            <button
+              onClick={() => setActiveTab('ble_mesh')}
+              className={`px-2.5 py-1 rounded-[4px] transition-calm ${
+                activeTab === 'ble_mesh' 
+                  ? 'bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' 
+                  : 'text-[#5C635E] dark:text-[#8A928D]'
+              }`}
+            >
+              BLE Mesh
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {activeTab === 'lora' ? (
           <>
             {/* LoRA Base Station Status Header */}

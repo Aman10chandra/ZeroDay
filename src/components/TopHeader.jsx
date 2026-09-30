@@ -12,9 +12,10 @@ export default function TopHeader({
   const regions = ["All Regions", "Rampur Ward", "Kosi Nagar", "Barauni East", "Darbhanga Block", "Samastipur Central", "Patna Canal"];
 
   return (
-    <header className="relative flex items-center justify-between px-4 py-3 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] select-none text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors">
-      {/* Territory / Region Selector */}
-      <div className="relative">
+    <header className="relative w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] select-none text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-3 flex items-center justify-between">
+        {/* Territory / Region Selector */}
+        <div className="relative">
         <button 
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className="flex items-center gap-1.5 text-base font-semibold tracking-tight hover:opacity-80 transition-opacity"
@@ -83,6 +84,7 @@ export default function TopHeader({
           </button>
         )}
       </div>
-    </header>
+    </div>
+  </header>
   );
 }

@@ -92,44 +92,46 @@ export default function MPU6050TelemetryScreen({
       <TopHeader currentRegion="Sensor N-022" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={onBack}
-            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
-            title="Return"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold tracking-tight leading-tight">
-                MPU-6050 telemetry
-              </h1>
-              <span className="text-[10px] font-mono uppercase text-[#2E7D4F] dark:text-[#389E65] border border-[#2E7D4F]/40 dark:border-[#389E65]/40 px-1 py-0.2 rounded-[3px]">
-                50Hz Live
-              </span>
+      <div className="w-full bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={onBack}
+              className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+              title="Return"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-semibold tracking-tight leading-tight">
+                  MPU-6050 telemetry
+                </h1>
+                <span className="text-[10px] font-mono uppercase text-[#2E7D4F] dark:text-[#389E65] border border-[#2E7D4F]/40 dark:border-[#389E65]/40 px-1 py-0.2 rounded-[3px]">
+                  50Hz Live
+                </span>
+              </div>
+              <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+                Node N-022 · Kotdwar Ridge Slope A · 192.168.1.75
+              </p>
             </div>
-            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
-              Node N-022 · Kotdwar Ridge Slope A · 192.168.1.75
-            </p>
           </div>
-        </div>
 
-        <button
-          onClick={triggerLandslideTremor}
-          className={`h-8 px-2.5 rounded-[8px] text-xs font-mono font-medium border transition-calm flex items-center gap-1.5 ${
-            isSimulatingVibration 
-              ? 'bg-[#C1271D] text-white border-[#C1271D]' 
-              : 'border-[#D8D4CA] dark:border-[#2A302D] text-[#1A1D1B] dark:text-[#ECEAE4] hover:bg-[#ECE9E2] dark:hover:bg-[#2A302D]'
-          }`}
-        >
-          <Zap className="w-3.5 h-3.5" strokeWidth={1.5} />
-          <span>{isSimulatingVibration ? 'Tremor active' : 'Simulate tremor'}</span>
-        </button>
+          <button
+            onClick={triggerLandslideTremor}
+            className={`h-8 px-2.5 rounded-[8px] text-xs font-mono font-medium border transition-calm flex items-center gap-1.5 ${
+              isSimulatingVibration 
+                ? 'bg-[#C1271D] text-white border-[#C1271D]' 
+                : 'border-[#D8D4CA] dark:border-[#2A302D] text-[#1A1D1B] dark:text-[#ECEAE4] hover:bg-[#ECE9E2] dark:hover:bg-[#2A302D]'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" strokeWidth={1.5} />
+            <span>{isSimulatingVibration ? 'Tremor active' : 'Simulate tremor'}</span>
+          </button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-4">
         {/* Three aligned mono readouts in one clean panel */}
         <section aria-label="6-axis kinematic readouts">
           <div className="py-1 mb-1.5">

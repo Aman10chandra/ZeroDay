@@ -44,7 +44,7 @@ export default function SettingsScreen({
         userRole={userRole}
       />
 
-      <div className="p-4 space-y-5">
+      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto w-full space-y-5">
         {/* Status Line: Mono telemetry info */}
         <div className="flex items-center justify-between text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D] pb-1 border-b border-[#D8D4CA] dark:border-[#2A302D]">
           <div className="flex items-center gap-1.5">
