@@ -1,25 +1,26 @@
-import React from 'react';
-import { MapPin, ChevronDown, Bell, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, Bell, Settings } from 'lucide-react';
 
 export default function TopHeader({ 
   currentRegion = "All Regions", 
   onSelectRegion,
-  unreadAlerts = 2 
+  unreadAlerts = 2,
+  userRole = 'admin',
+  onOpenSettings
 }) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const regions = ["All Regions", "Rampur Ward", "Kosi Nagar", "Barauni East", "Darbhanga Block", "Samastipur Central", "Patna Canal"];
 
   return (
-    <header className="relative flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 select-none">
-      {/* Region Selector */}
+    <header className="relative flex items-center justify-between px-4 py-3 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] select-none text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors">
+      {/* Territory / Region Selector */}
       <div className="relative">
         <button 
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center gap-1.5 text-[#1e293b] font-bold text-[18px] tracking-tight hover:opacity-80 transition-opacity"
+          className="flex items-center gap-1.5 text-base font-semibold tracking-tight hover:opacity-80 transition-opacity"
         >
-          <MapPin className="w-5 h-5 text-[#c2410c]" strokeWidth={2.4} />
           <span>{currentRegion}</span>
-          <ChevronDown className="w-4 h-4 text-slate-700 ml-0.5" strokeWidth={2.6} />
+          <ChevronDown className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
         </button>
 
         {dropdownOpen && (
@@ -28,9 +29,9 @@ export default function TopHeader({
               className="fixed inset-0 z-40" 
               onClick={() => setDropdownOpen(false)} 
             />
-            <div className="absolute left-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Select Territory
+            <div className="absolute left-0 mt-1.5 w-56 bg-[#FAF9F6] dark:bg-[#171B19] rounded-[8px] shadow-modal border border-[#D8D4CA] dark:border-[#2A302D] py-1 z-50">
+              <div className="px-3 py-1 text-[11px] font-mono uppercase tracking-[0.06em] text-[#5C635E] dark:text-[#8A928D]">
+                Territory
               </div>
               {regions.map((reg) => (
                 <button
@@ -39,15 +40,15 @@ export default function TopHeader({
                     if (onSelectRegion) onSelectRegion(reg);
                     setDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2 text-sm flex items-center justify-between transition-colors ${
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors ${
                     currentRegion === reg 
-                      ? 'bg-orange-50 font-semibold text-[#c2410c]' 
-                      : 'text-slate-700 hover:bg-slate-50'
+                      ? 'bg-[#ECE9E2] dark:bg-[#2A302D] font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]' 
+                      : 'text-[#5C635E] dark:text-[#8A928D] hover:bg-[#ECE9E2]/60 dark:hover:bg-[#2A302D]/60'
                   }`}
                 >
                   <span>{reg}</span>
                   {currentRegion === reg && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c2410c]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1A1D1B] dark:bg-[#ECEAE4]" />
                   )}
                 </button>
               ))}
@@ -56,28 +57,31 @@ export default function TopHeader({
         )}
       </div>
 
-      {/* Right Icons: Bell, RK, User avatar */}
+      {/* Right: Role indicator label, Notifications, Settings */}
       <div className="flex items-center gap-3">
-        {/* Notification Bell */}
-        <button 
-          className="relative p-1.5 rounded-full hover:bg-slate-100 text-slate-700 transition-colors"
-          title="Alert Notifications"
-        >
-          <Bell className="w-5 h-5 text-slate-700" strokeWidth={2} />
-          {unreadAlerts > 0 && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#dc2626] rounded-full border-2 border-white" />
-          )}
-        </button>
+        {/* Role indicator: small text label */}
+        <span className="text-[11px] font-mono tracking-wider uppercase text-[#5C635E] dark:text-[#8A928D] px-1.5 py-0.5 border border-[#D8D4CA] dark:border-[#2A302D] rounded-[4px]">
+          {userRole === 'admin' ? 'Admin' : 'Resident'}
+        </span>
 
-        {/* User initials badge "RK" */}
-        <div className="w-8 h-8 rounded-full bg-[#ffedd5] flex items-center justify-center text-[#9a3412] font-semibold text-xs border border-[#fed7aa] cursor-pointer hover:scale-105 transition-transform">
-          RK
+        {/* Alert Bell */}
+        <div className="relative">
+          <Bell className="w-5 h-5 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+          {unreadAlerts > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#C1271D] dark:bg-[#D9382E]" />
+          )}
         </div>
 
-        {/* Deep burnt-orange profile circle */}
-        <button className="w-8 h-8 rounded-full bg-[#9a3412] text-white flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity">
-          <User className="w-4 h-4 fill-white text-white" />
-        </button>
+        {/* Settings button */}
+        {onOpenSettings && (
+          <button 
+            onClick={onOpenSettings}
+            className="p-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+            title="Settings and system diagnostics"
+          >
+            <Settings className="w-4 h-4" strokeWidth={1.5} />
+          </button>
+        )}
       </div>
     </header>
   );

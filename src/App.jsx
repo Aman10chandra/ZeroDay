@@ -7,6 +7,10 @@ import AlertControlScreen from './screens/AlertControlScreen';
 import EvacuationRouteScreen from './screens/EvacuationRouteScreen';
 import CommunityReportsScreen from './screens/CommunityReportsScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import MPU6050TelemetryScreen from './screens/MPU6050TelemetryScreen';
+import AIRiskEngineScreen from './screens/AIRiskEngineScreen';
+import HardwareGatewayScreen from './screens/HardwareGatewayScreen';
+import ToolsScreen from './screens/ToolsScreen';
 import ManualAlertModal from './components/ManualAlertModal';
 import AddReportModal from './components/AddReportModal';
 import SluiceOverrideModal from './components/SluiceOverrideModal';
@@ -18,6 +22,9 @@ export default function App() {
   // Screen routing
   const [currentScreen, setCurrentScreen] = useState('home');
   const [bottomNavTab, setBottomNavTab] = useState('home');
+
+  // Origin tracker for engineering sub-screens (returns to Tools when opened from Tools)
+  const [engineeringOrigin, setEngineeringOrigin] = useState('home');
 
   // Role: 'admin' | 'resident'
   const [userRole, setUserRole] = useState('admin');
@@ -42,12 +49,31 @@ export default function App() {
   const [dispatchedRouteData, setDispatchedRouteData] = useState(null);
   const [residentAlert, setResidentAlert] = useState(null);
 
+  // Ops Mode theme (auto by prefers-color-scheme, plus manual toggle)
+  const [isOpsMode, setIsOpsMode] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  // Sync dark class on document element
+  React.useEffect(() => {
+    if (isOpsMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isOpsMode]);
+
+  const toggleOpsMode = () => setIsOpsMode(prev => !prev);
+
   // Siren Audio & Visual alert state
   const [isSirenActive, setIsSirenActive] = useState(false);
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
 
-  // Sync bottom nav tab with current screen
+  // Sync bottom nav tab with current screen (Overview, Map, Alerts, Reports)
   const handleTabChange = (tabId) => {
     setBottomNavTab(tabId);
     if (tabId === 'home') {
@@ -61,8 +87,12 @@ export default function App() {
       setCurrentScreen('alerts');
       setIsAddingShelterMode(false);
     }
-    else if (tabId === 'sensors') {
-      setCurrentScreen('detail');
+    else if (tabId === 'reports') {
+      setCurrentScreen('reports');
+      setIsAddingShelterMode(false);
+    }
+    else if (tabId === 'tools') {
+      setCurrentScreen('tools');
       setIsAddingShelterMode(false);
     }
     else if (tabId === 'settings') {
@@ -75,7 +105,7 @@ export default function App() {
   const handleSelectRegion = (regionId) => {
     if (regionId === 'rampur' || regionId === 'Rampur Ward') {
       setCurrentScreen('detail');
-      setBottomNavTab('sensors');
+      setBottomNavTab('');
     } else {
       setCurrentScreen('detail');
     }
@@ -201,11 +231,15 @@ export default function App() {
       onNavigateScreen={(screenId) => {
         setCurrentScreen(screenId);
         if (screenId === 'home') setBottomNavTab('home');
-        else if (screenId === 'detail') setBottomNavTab('sensors');
+        else if (screenId === 'detail') setBottomNavTab('');
         else if (screenId === 'alerts') setBottomNavTab('alerts');
         else if (screenId === 'map') setBottomNavTab('map');
-        else if (screenId === 'reports') setBottomNavTab('');
-        else if (screenId === 'settings') setBottomNavTab('settings');
+        else if (screenId === 'reports') setBottomNavTab('reports');
+        else if (screenId === 'tools') setBottomNavTab('tools');
+        else if (screenId === 'settings') setBottomNavTab('');
+        else if (screenId === 'mpu6050') setBottomNavTab('tools');
+        else if (screenId === 'ai-engine') setBottomNavTab('tools');
+        else if (screenId === 'gateway') setBottomNavTab('tools');
       }}
       isSirenActive={isSirenActive}
       onToggleSiren={toggleSiren}
@@ -213,8 +247,10 @@ export default function App() {
       onToggleRole={() => setUserRole(prev => prev === 'admin' ? 'resident' : 'admin')}
       onTriggerDisaster={() => {
         setCurrentScreen('detail');
-        setBottomNavTab('sensors');
+        setBottomNavTab('');
       }}
+      isOpsMode={isOpsMode}
+      onToggleOpsMode={toggleOpsMode}
     >
       {/* Resident Alert Notification Banner */}
       <ResidentAlertBanner 
@@ -234,7 +270,21 @@ export default function App() {
       <div className="flex-1 flex flex-col">
         {currentScreen === 'home' && (
           <HomeScreen 
-            onSelectRegionDetail={handleSelectRegion} 
+            onSelectRegionDetail={handleSelectRegion}
+            onNavigateMPU6050={() => {
+              setEngineeringOrigin('home');
+              setCurrentScreen('mpu6050');
+            }}
+            onNavigateAIRiskEngine={() => {
+              setEngineeringOrigin('home');
+              setCurrentScreen('ai-engine');
+            }}
+            onNavigateGateway={() => {
+              setEngineeringOrigin('home');
+              setCurrentScreen('gateway');
+            }}
+            onOpenSettings={() => setCurrentScreen('settings')}
+            userRole={userRole}
           />
         )}
 
@@ -249,6 +299,14 @@ export default function App() {
             onOpenAddShelter={handleOpenAddShelter}
             onOpenEvacuationMap={handleOpenEvacuationMap}
             onShowToast={showToast}
+            onOpenMPU6050={() => {
+              setEngineeringOrigin('detail');
+              setCurrentScreen('mpu6050');
+            }}
+            onOpenAIRiskEngine={() => {
+              setEngineeringOrigin('detail');
+              setCurrentScreen('ai-engine');
+            }}
           />
         )}
 
@@ -259,6 +317,10 @@ export default function App() {
               setBottomNavTab('home');
             }}
             onOpenManualAlert={() => setManualAlertOpen(true)}
+            onOpenGateway={() => {
+              setEngineeringOrigin('alerts');
+              setCurrentScreen('gateway');
+            }}
           />
         )}
 
@@ -284,17 +346,96 @@ export default function App() {
           />
         )}
 
+        {currentScreen === 'tools' && (
+          <ToolsScreen 
+            onNavigateMPU6050={() => {
+              setEngineeringOrigin('tools');
+              setCurrentScreen('mpu6050');
+            }}
+            onNavigateAIRiskEngine={() => {
+              setEngineeringOrigin('tools');
+              setCurrentScreen('ai-engine');
+            }}
+            onNavigateGateway={() => {
+              setEngineeringOrigin('tools');
+              setCurrentScreen('gateway');
+            }}
+            userRole={userRole}
+          />
+        )}
+
+        {currentScreen === 'mpu6050' && (
+          <MPU6050TelemetryScreen 
+            onBack={() => {
+              if (engineeringOrigin === 'tools') {
+                setCurrentScreen('tools');
+              } else {
+                setCurrentScreen('detail');
+                setBottomNavTab('');
+              }
+            }}
+            onShowToast={showToast}
+            onTriggerDisaster={() => {
+              setCurrentScreen('detail');
+              setBottomNavTab('');
+            }}
+          />
+        )}
+
+        {currentScreen === 'ai-engine' && (
+          <AIRiskEngineScreen 
+            onBack={() => {
+              if (engineeringOrigin === 'tools') {
+                setCurrentScreen('tools');
+              } else if (engineeringOrigin === 'detail') {
+                setCurrentScreen('detail');
+                setBottomNavTab('');
+              } else {
+                setCurrentScreen('home');
+                setBottomNavTab('home');
+              }
+            }}
+            onShowToast={showToast}
+            onNavigateEvacuation={() => {
+              setCurrentScreen('map');
+              setBottomNavTab('map');
+            }}
+          />
+        )}
+
+        {currentScreen === 'gateway' && (
+          <HardwareGatewayScreen 
+            onBack={() => {
+              if (engineeringOrigin === 'tools') {
+                setCurrentScreen('tools');
+              } else if (engineeringOrigin === 'alerts') {
+                setCurrentScreen('alerts');
+                setBottomNavTab('alerts');
+              } else {
+                setCurrentScreen('home');
+                setBottomNavTab('home');
+              }
+            }}
+            onShowToast={showToast}
+          />
+        )}
+
         {currentScreen === 'settings' && (
           <SettingsScreen 
             onShowToast={showToast}
+            isOpsMode={isOpsMode}
+            onToggleOpsMode={toggleOpsMode}
+            userRole={userRole}
+            onToggleRole={() => setUserRole(prev => prev === 'admin' ? 'resident' : 'admin')}
           />
         )}
       </div>
 
       {/* Persistent Bottom Navigation Bar */}
       <BottomNav 
-        activeTab={bottomNavTab} 
+        activeTab={['tools', 'mpu6050', 'ai-engine', 'gateway'].includes(currentScreen) ? 'tools' : bottomNavTab} 
         onTabChange={handleTabChange} 
+        toolsSeverity="critical"
       />
 
       {/* Modals */}

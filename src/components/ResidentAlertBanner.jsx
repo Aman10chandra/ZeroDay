@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, ArrowRight, X, Radio, MapPin } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 
 export default function ResidentAlertBanner({ 
   alertData, 
@@ -8,60 +8,63 @@ export default function ResidentAlertBanner({
 }) {
   if (!alertData) return null;
 
+  const shelterName = alertData.shelter?.name || "Govt. School Rampur";
+  const shelterDist = alertData.shelter?.dist || "1.8 km";
+
   return (
-    <div className="fixed top-12 left-4 right-4 z-50 animate-in slide-in-from-top duration-300">
-      <div className="bg-[#881337] text-white rounded-2xl p-4 shadow-2xl border border-rose-400/30 flex flex-col gap-2.5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
-              <ShieldAlert className="w-4 h-4 text-rose-200" />
-            </div>
-            <div>
+    <aside 
+      role="alert"
+      className="sticky top-0 left-0 right-0 z-50 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] shadow-subtle"
+    >
+      {/* 3px full-width top border in severity-critical */}
+      <div className="h-[3px] bg-[#C1271D] dark:bg-[#D9382E]" />
+
+      <div className="p-3 bg-[#C1271D]/10 dark:bg-[#D9382E]/15">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            {/* Single 2s slow pulse status dot */}
+            <span className="w-2 h-2 rounded-full bg-[#C1271D] dark:bg-[#D9382E] animate-slow-pulse mt-1 flex-shrink-0" />
+            
+            <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-950/80 px-2 py-0.5 rounded-full border border-rose-500/30 text-rose-200 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
-                  SDRF DIRECTIVE · CAP V1.2
+                <span className="text-[11px] font-mono tracking-[0.06em] uppercase font-semibold text-[#C1271D] dark:text-[#D9382E]">
+                  CRITICAL DIRECTIVE
                 </span>
-                <span className="text-[10px] text-rose-300 font-mono">
-                  {alertData.timestamp || 'Live'}
+                <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  {alertData.timestamp || 'Active'}
                 </span>
               </div>
-              <h4 className="text-[14px] font-bold tracking-tight mt-0.5 text-white">
-                Evacuation Corridor Dispatched
-              </h4>
+
+              {/* Plain-language action sentence */}
+              <p className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] leading-snug">
+                Move to {shelterName}. {shelterDist}, 24 min walk. Do not use river bridge.
+              </p>
             </div>
           </div>
 
           <button
             onClick={onDismiss}
-            className="p-1 rounded-lg hover:bg-white/10 text-rose-200 hover:text-white transition-colors"
+            className="p-1 text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+            title="Dismiss directive"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
-        <p className="text-[12px] text-rose-100 font-normal leading-relaxed">
-          {alertData.note || `Rampur Ward retention gauge exceeded safe datum by 1.6m. Immediate evacuation ordered toward designated high-ground refuge: ${alertData.shelter?.name || "Govt. Senior Secondary School"}. Do not attempt bridge transit.`}
-        </p>
-
-        <div className="flex items-center justify-between pt-1 border-t border-rose-800/60">
-          <div className="text-[11px] text-rose-200 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-rose-300" />
-            <span>Refuge: <strong className="text-white font-semibold">{alertData.shelter?.name || "Govt. Senior Secondary School"}</strong></span>
-          </div>
-
+        {/* Action Button */}
+        <div className="mt-2.5 flex justify-end">
           <button
             onClick={() => {
               onViewRoute();
               onDismiss();
             }}
-            className="bg-white hover:bg-rose-50 text-[#881337] font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-sm active:scale-95 transition-all"
+            className="h-9 px-3 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex items-center gap-1.5 transition-calm hover:opacity-90"
           >
-            <span>Open Evacuation Path</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Open evacuation route</span>
+            <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

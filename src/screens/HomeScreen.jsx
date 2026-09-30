@@ -1,174 +1,294 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown } from 'lucide-react';
-import TopHeader from '../components/TopHeader';
+import { ChevronDown, WifiOff } from 'lucide-react';
+import OverviewHeader from './OverviewHeader';
+import OverviewStatusHero from './OverviewStatusHero';
+import OverviewWardRow from './OverviewWardRow';
 
-export default function HomeScreen({ onSelectRegionDetail }) {
-  const [sortOrder, setSortOrder] = useState('critical');
+/**
+ * HomeScreen (Overview Screen):
+ * Calmer, more spacious, easy-to-scan mountain field instrument.
+ * - Single focal hero with 6% subtle tint and no inner dividers.
+ * - One-line summary strip with tabular numerals and wifi-off offline indicator.
+ * - Unified territories list in ONE container with 1px dividers and 8px radius.
+ * - Sort dropdown menu replacing the segmented control.
+ * - Severity color strictly reserved for meaning.
+ */
+export default function HomeScreen({
+  onSelectRegionDetail,
+  onOpenSettings,
+  userRole = 'admin'
+}) {
+  // Territory filter from header
+  const [selectedTerritoryFilter, setSelectedTerritoryFilter] = useState('All Territories');
 
-  const regionsData = [
+  // Sorting mode: 'severity' | 'name' | 'rainfall'
+  const [sortMode, setSortMode] = useState('severity');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+
+  // Diagnostic states
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [errorState, setErrorState] = useState(null);
+
+  // Monitored territories dataset
+  const territories = [
     {
       id: 'rampur',
       name: 'Rampur Ward',
-      rainfall: '62 mm/hr',
-      status: 'River level critical',
-      dotColor: '#dc2626', // Red
-      isActiveCard: true, // Soft blue-tinted card as in screenshot
-      severity: 1,
+      sector: 'Sector 4B Basin',
+      telemetry: '62 mm/h',
+      rainValue: 62,
+      reason: 'River datum exceeded +1.6m',
+      severity: 'critical',
+      trend: '+18%/h',
+      trendDirection: 'rising',
+      isHeroAlert: true,
     },
     {
       id: 'kosi',
       name: 'Kosi Nagar',
-      rainfall: '48 mm/hr',
-      status: 'Inundation warning',
-      dotColor: '#dc2626', // Red
-      isActiveCard: false,
-      severity: 2,
+      sector: 'Sector 2 Ridge',
+      telemetry: '48 mm/h',
+      rainValue: 48,
+      reason: 'Lowland inundation warning',
+      severity: 'warning',
+      trend: '+11%/h',
+      trendDirection: 'rising',
     },
     {
       id: 'barauni',
       name: 'Barauni East',
-      rainfall: '31 mm/hr',
-      status: 'Gauge rising steadily',
-      dotColor: '#b45309', // Amber / Brown
-      isActiveCard: false,
-      severity: 3,
+      sector: 'Sector 1 Inflow',
+      telemetry: '31 mm/h',
+      rainValue: 31,
+      reason: 'Gauge rising steadily',
+      severity: 'advisory',
+      trend: '+6%/h',
+      trendDirection: 'rising',
     },
     {
       id: 'darbhanga',
       name: 'Darbhanga Block',
-      rainfall: '24 mm/hr',
-      status: 'Drainage watch active',
-      dotColor: '#b45309', // Amber / Brown
-      isActiveCard: false,
-      severity: 4,
+      sector: 'Sector 5 Valley',
+      telemetry: '24 mm/h',
+      rainValue: 24,
+      reason: 'Drainage watch active',
+      severity: 'advisory',
+      trend: '0%/h',
+      trendDirection: 'steady',
     },
     {
       id: 'samastipur',
       name: 'Samastipur Central',
-      rainfall: '11 mm/hr',
-      status: 'Normal flow',
-      dotColor: '#94a3b8', // Muted slate / light blue
-      isActiveCard: false,
-      severity: 5,
+      sector: 'Sector 3 Plateau',
+      telemetry: '11 mm/h',
+      rainValue: 11,
+      reason: 'Stream velocity nominal',
+      severity: 'safe',
+      trend: '-4%/h',
+      trendDirection: 'falling',
     },
     {
       id: 'patna',
       name: 'Patna Canal Sector 3',
-      rainfall: '4 mm/hr',
-      status: 'Within safe threshold',
-      dotColor: '#94a3b8', // Muted slate / light blue
-      isActiveCard: false,
-      severity: 6,
+      sector: 'Sector 6 Outlet',
+      telemetry: '04 mm/h',
+      rainValue: 4,
+      reason: 'Within seasonal baseline',
+      severity: 'safe',
+      trend: '-2%/h',
+      trendDirection: 'falling',
     },
   ];
 
+  // Primary critical and warning items for hero calculation
+  const criticalWard = territories.find(t => t.severity === 'critical');
+  const warningWard = territories.find(t => t.severity === 'warning');
+
+  // Filter territories if single territory is picked from the header
+  const filteredTerritories = selectedTerritoryFilter === 'All Territories'
+    ? territories
+    : territories.filter(t => t.name.toLowerCase().includes(selectedTerritoryFilter.toLowerCase()));
+
+  // Sorting
+  const getSortedList = () => {
+    const list = [...filteredTerritories];
+    if (sortMode === 'name') {
+      return list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    if (sortMode === 'rainfall') {
+      return list.sort((a, b) => b.rainValue - a.rainValue);
+    }
+    // Default 'severity' sort: critical first, then warning, advisory, safe
+    const order = { critical: 0, warning: 1, advisory: 2, safe: 3 };
+    return list.sort((a, b) => order[a.severity] - order[b.severity]);
+  };
+
+  const sortedTerritories = getSortedList();
+
+  const sortLabels = {
+    severity: 'Severity',
+    name: 'Name',
+    rainfall: 'Rainfall'
+  };
+
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc] text-slate-900 pb-6">
-      {/* Top Header */}
-      <TopHeader currentRegion="All Regions" />
+    <div className="flex flex-col min-h-full bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] pb-24 pb-[calc(5rem+env(safe-area-inset-bottom))] transition-colors">
+      {/* Overview-specific Header: territory filter, plain role, no duplicate bell dot */}
+      <OverviewHeader
+        currentRegion={selectedTerritoryFilter}
+        onSelectRegion={(reg) => setSelectedTerritoryFilter(reg)}
+        userRole={userRole}
+        onOpenSettings={onOpenSettings}
+      />
 
-      {/* Main Content */}
-      <div className="px-4 pt-4 pb-2">
-        {/* User Greeting */}
-        <h2 className="text-[17px] font-medium text-slate-800 tracking-tight mb-4">
-          Good evening, Rajesh
-        </h2>
-
-        {/* 2 Top Metric Summary Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {/* Regions Card */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
-            <span className="text-[13px] font-medium text-slate-500">
-              Regions
-            </span>
-            <div className="my-1">
-              <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                14
-              </span>
+      <div className="p-4">
+        {/* Error State */}
+        {errorState ? (
+          <section className="p-4 border border-[#C1271D] dark:border-[#D9382E] rounded-[8px] bg-[#C1271D]/[0.06] dark:bg-[#D9382E]/[0.08] flex flex-col gap-3">
+            <div>
+              <h2 className="text-base font-sans font-semibold text-[#C1271D] dark:text-[#D9382E]">
+                Telemetry stream unavailable
+              </h2>
+              <p className="text-sm font-sans text-[#1A1D1B] dark:text-[#ECEAE4] mt-0.5">
+                {errorState}
+              </p>
             </div>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="w-2 h-2 rounded-full bg-[#c2410c] animate-pulse" />
-              <span className="text-[12px] font-semibold text-[#a83210]">
-                5 alerts active
-              </span>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => {
+                setErrorState(null);
+                setIsLoading(true);
+                setTimeout(() => setIsLoading(false), 400);
+              }}
+              className="min-h-[44px] px-4 py-2 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#171B19] rounded-[8px] font-sans font-semibold text-sm self-start transition-opacity hover:opacity-90"
+            >
+              Retry gateway sync
+            </button>
+          </section>
+        ) : (
+          <>
+            {/* Hero Block (16px rhythm below header) */}
+            <OverviewStatusHero
+              criticalWard={criticalWard}
+              warningWard={warningWard}
+              onOpenWard={onSelectRegionDetail}
+              onDispatchRoute={() => onSelectRegionDetail && onSelectRegionDetail('rampur')}
+              userRole={userRole}
+              isOffline={isOffline}
+              offlineTime="14:02"
+            />
 
-          {/* Sensors Card */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between">
-            <span className="text-[13px] font-medium text-slate-500">
-              Sensors
-            </span>
-            <div className="my-1">
-              <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                42 online
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[12px] font-bold text-[#b91c1c]">
-                3 offline
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Regions Header & Sort Dropdown */}
-        <div className="flex items-center justify-between mb-3 px-0.5">
-          <h3 className="text-[19px] font-bold text-slate-900 tracking-tight">
-            Regions
-          </h3>
-          <button 
-            onClick={() => setSortOrder(sortOrder === 'critical' ? 'alpha' : 'critical')}
-            className="flex items-center gap-1 text-[13px] font-bold text-[#a83210] hover:opacity-80 transition-opacity"
-          >
-            <span>Sort</span>
-            <ChevronDown className="w-3.5 h-3.5 text-[#a83210]" strokeWidth={2.8} />
-          </button>
-        </div>
-
-        {/* Region Cards List */}
-        <div className="flex flex-col gap-2.5">
-          {regionsData.map((region) => {
-            const isHighlighted = region.isActiveCard;
-            return (
-              <div
-                key={region.id}
-                onClick={() => onSelectRegionDetail && onSelectRegionDetail(region.id)}
-                className={`w-full rounded-2xl px-4 py-3.5 flex items-center justify-between cursor-pointer transition-all duration-150 active:scale-[0.99] ${
-                  isHighlighted 
-                    ? 'bg-[#e8f0fe] border border-blue-100/80 shadow-[0_2px_6px_rgba(59,130,246,0.06)]' 
-                    : 'bg-white border border-slate-100 shadow-[0_2px_6px_rgba(0,0,0,0.02)] hover:border-slate-200'
-                }`}
+            {/* Summary Strip (12px gap below hero, 14px sans with tabular numerals) */}
+            <section
+              aria-label="Telemetry summary counts"
+              className="mt-3 min-h-[44px] flex items-center justify-between text-[14px] font-sans text-[#5C635E] dark:text-[#8A928D] tabular-nums px-1"
+            >
+              {/* Left: Active alerts link (44px tap target) */}
+              <button
+                type="button"
+                onClick={() => onSelectRegionDetail && onSelectRegionDetail('rampur')}
+                className="min-h-[44px] flex items-center gap-1.5 text-[14px] font-sans text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors focus:outline-none"
               >
-                <div className="flex items-start gap-3">
-                  {/* Colored Status Dot */}
-                  <span 
-                    className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
-                    style={{ backgroundColor: region.dotColor }} 
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-[15.5px] font-bold text-slate-900 tracking-tight">
-                        {region.name}
-                      </h4>
-                      {region.id === 'rampur' && (
-                        <span className="bg-[#fee2e2] text-[#991b1b] border border-red-200 text-[9.5px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                          SDRF Red Alert
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[12.5px] text-slate-500 font-normal mt-0.5 leading-snug">
-                      {region.rainfall} rainfall · {region.status}
-                    </p>
-                  </div>
+                <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">5</span>
+                <span>active alerts</span>
+              </button>
+
+              {/* Right: Sensor telemetry online / offline count with WifiOff icon */}
+              <div className="min-h-[44px] flex items-center gap-1.5 text-[14px] font-sans text-[#5C635E] dark:text-[#8A928D]">
+                <span>42 of 45 sensors online</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">·</span>
+                <span className="flex items-center gap-1 text-[#D2620A] dark:text-[#E6731B] font-medium">
+                  <WifiOff className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <span>3 offline</span>
+                </span>
+              </div>
+            </section>
+
+            {/* Territories Section (24px gap above) */}
+            <section aria-label="Monitored territories" className="mt-6">
+              {/* Section Header: "Territories 6" + sort dropdown button */}
+              <div className="flex items-center justify-between px-1 relative">
+                <div className="text-[14px] font-sans font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                  Territories <span className="text-[#5C635E] dark:text-[#8A928D] font-normal ml-0.5">{sortedTerritories.length}</span>
                 </div>
 
-                {/* Chevron Right Arrow */}
-                <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0 ml-2" strokeWidth={2.4} />
+                {/* Sort selector button with chevron */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setSortMenuOpen(!sortMenuOpen)}
+                    className="min-h-[44px] flex items-center gap-1 text-[13px] font-sans text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors focus:outline-none"
+                    aria-expanded={sortMenuOpen}
+                    aria-label="Sort territories"
+                  >
+                    <span>{sortLabels[sortMode]}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {sortMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setSortMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-1 w-36 bg-[#FAF9F6] dark:bg-[#171B19] rounded-[8px] shadow-modal border border-[#D8D4CA] dark:border-[#2A302D] py-1 z-50">
+                        {['severity', 'name', 'rainfall'].map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => {
+                              setSortMode(mode);
+                              setSortMenuOpen(false);
+                            }}
+                            className={`w-full min-h-[38px] text-left px-3 py-1.5 text-xs font-sans flex items-center justify-between transition-colors ${
+                              sortMode === mode
+                                ? 'bg-[#ECE9E2] dark:bg-[#2A302D] font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]'
+                                : 'text-[#5C635E] dark:text-[#8A928D] hover:bg-[#ECE9E2]/60 dark:hover:bg-[#2A302D]/60'
+                            }`}
+                          >
+                            <span>{sortLabels[mode]}</span>
+                            {sortMode === mode && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#1A1D1B] dark:bg-[#ECEAE4]" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Single List Container (8px gap below header, 1px border, 8px radius, hairline dividers) */}
+              <div className="mt-2 border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden">
+                {isLoading ? (
+                  /* Loading Skeletons */
+                  [1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="min-h-[64px] py-3 px-4 flex items-center justify-between animate-pulse">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full bg-[#D8D4CA] dark:bg-[#2A302D]" />
+                        <div className="space-y-1.5">
+                          <div className="w-28 h-3.5 bg-[#D8D4CA] dark:bg-[#2A302D] rounded-[4px]" />
+                          <div className="w-44 h-3 bg-[#D8D4CA] dark:bg-[#2A302D] rounded-[4px]" />
+                        </div>
+                      </div>
+                      <div className="w-16 h-4 bg-[#D8D4CA] dark:bg-[#2A302D] rounded-[4px]" />
+                    </div>
+                  ))
+                ) : (
+                  sortedTerritories.map((t) => (
+                    <OverviewWardRow
+                      key={t.id}
+                      territory={t}
+                      onSelect={onSelectRegionDetail}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

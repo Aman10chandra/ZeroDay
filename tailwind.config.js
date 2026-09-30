@@ -1,28 +1,57 @@
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+        stone: {
+          bg: '#F3F1EC',
+          surface: '#FAF9F6',
+          sunken: '#ECE9E2',
+          line: '#D8D4CA',
+          ink: '#1A1D1B',
+          muted: '#5C635E',
         },
-        slatebg: '#f6f8fc',
+        ops: {
+          bg: '#0F1211',
+          surface: '#171B19',
+          sunken: '#121514',
+          line: '#2A302D',
+          ink: '#ECEAE4',
+          muted: '#8A928D',
+        },
+        sev: {
+          safe: '#2E7D4F',
+          advisory: '#A87A00',
+          warning: '#D2620A',
+          critical: '#C1271D',
+          'safe-dark': '#389E65',
+          'advisory-dark': '#C79200',
+          'warning-dark': '#E87214',
+          'critical-dark': '#D9382E',
+        },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-      }
+        sans: ["'IBM Plex Sans'", '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ["'IBM Plex Mono'", 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '8px',
+        md: '8px',
+        lg: '8px',
+        xl: '8px',
+        '2xl': '8px',
+        full: '999px',
+      },
+      boxShadow: {
+        subtle: '0 4px 16px rgba(26, 29, 27, 0.08)',
+        modal: '0 8px 32px rgba(26, 29, 27, 0.16)',
+      },
     },
   },
   plugins: [],
 }
-
-

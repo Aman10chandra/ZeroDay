@@ -1,206 +1,338 @@
 import React, { useState } from 'react';
 import { 
   ShieldCheck, Languages, MessageSquare, Map, Volume2, 
-  Users, Settings as SettingsIcon, Shield, LogOut, ChevronRight 
+  Moon, Sun, Radio, HardDrive, RefreshCw, LogOut, Check
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
-export default function SettingsScreen({ onShowToast }) {
+export default function SettingsScreen({ 
+  onShowToast,
+  isOpsMode = false,
+  onToggleOpsMode,
+  userRole = 'admin',
+  onToggleRole
+}) {
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [offlineMaps, setOfflineMaps] = useState(true);
-  const [sirenOnEmergency, setSirenOnEmergency] = useState(false);
-  const [language, setLanguage] = useState('Hindi');
+  const [sirenOnEmergency, setSirenOnEmergency] = useState(true);
+  const [language, setLanguage] = useState('English');
+  const [cacheSize, setCacheSize] = useState('42.4 MB');
+  const [isCalibrating, setIsCalibrating] = useState(false);
+
+  const handleClearCache = () => {
+    setCacheSize('0.0 MB');
+    if (onShowToast) {
+      onShowToast('Offline topographic cache cleared (42.4 MB freed)', 'info');
+    }
+  };
+
+  const handleRecalibrateMesh = () => {
+    setIsCalibrating(true);
+    setTimeout(() => {
+      setIsCalibrating(false);
+      if (onShowToast) {
+        onShowToast('LoRA beacon MS-8842 recalibrated at 868.10 MHz', 'safe');
+      }
+    }, 900);
+  };
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc] text-slate-900 pb-20">
-      {/* Top Header */}
-      <TopHeader currentRegion="All Regions" />
+    <div className="flex flex-col min-h-full pb-20 select-none">
+      {/* Header */}
+      <TopHeader 
+        currentRegion="Settings & Diagnostics" 
+        userRole={userRole}
+      />
 
-      <div className="px-4 py-3 flex flex-col gap-4">
-        {/* Status Line: Telemetry Synced & ID */}
-        <div className="flex items-center justify-between text-xs font-semibold px-0.5 pt-0.5">
-          <div className="flex items-center gap-1.5 text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-[#b45309]" />
-            <span className="text-[11.5px] font-bold text-slate-600 tracking-wider uppercase">
-              TELEMETRY SYNCED
-            </span>
+      <div className="p-4 space-y-5">
+        {/* Status Line: Mono telemetry info */}
+        <div className="flex items-center justify-between text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D] pb-1 border-b border-[#D8D4CA] dark:border-[#2A302D]">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D4F] dark:bg-[#3FA66A]" />
+            <span>NODE MS-8842 SYNCED</span>
           </div>
-          <span className="text-slate-500 font-bold text-xs tracking-tight">
-            ID: MS-8842
-          </span>
+          <span>TIER 1 DISASTER CLEARANCE</span>
         </div>
 
-        {/* User Profile Card */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3.5">
-            {/* Avatar RS */}
-            <div className="w-14 h-14 rounded-2xl bg-[#ffedd5] border border-[#fed7aa] flex items-center justify-center text-[#9a3412] font-black text-lg flex-shrink-0 shadow-sm">
-              RS
+        {/* Hero: Operator Profile Block (Single hero element) */}
+        <section className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] p-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[8px] bg-[#ECE9E2] dark:bg-[#2A302D] border border-[#D8D4CA] dark:border-[#3A423E] flex items-center justify-center font-mono font-semibold text-sm text-[#1A1D1B] dark:text-[#ECEAE4]">
+                RS
+              </div>
+              <div>
+                <h1 className="text-base font-semibold leading-tight text-[#1A1D1B] dark:text-[#ECEAE4]">
+                  Ravi Singh
+                </h1>
+                <p className="text-xs text-[#5C635E] dark:text-[#8A928D] font-mono mt-0.5">
+                  Rampur Ward · Operator ID: SDRF-7740
+                </p>
+              </div>
             </div>
-
-            {/* Name & Ward */}
-            <div>
-              <h2 className="text-[18px] font-bold text-slate-900 tracking-tight leading-snug">
-                Ravi Singh
-              </h2>
-              <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">
-                Rampur ward · +91 98xxxx210
-              </p>
-            </div>
-          </div>
-
-          {/* Verified Representative Pill Banner */}
-          <div className="mt-3.5 bg-[#f0f4ff] border border-blue-100/80 rounded-xl px-3 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-              <ShieldCheck className="w-4 h-4 text-slate-700" />
-              <span>Verified Ward Representative</span>
-            </div>
-            <span className="bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa] text-[11px] font-extrabold px-2 py-0.5 rounded-md">
-              Tier 1
+            <span className="px-2 py-0.5 rounded-[999px] text-[11px] font-mono font-medium tracking-wider uppercase border border-[#2E7D4F]/30 bg-[#2E7D4F]/10 text-[#2E7D4F] dark:text-[#3FA66A] flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" strokeWidth={1.5} />
+              Verified
             </span>
           </div>
-        </div>
 
-        {/* Section: PREFERENCES */}
-        <div>
-          <span className="text-[11px] font-extrabold text-slate-500 tracking-wider uppercase block mb-2 px-1">
-            PREFERENCES
-          </span>
+          <div className="mt-3 pt-2.5 border-t border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between text-xs">
+            <span className="text-[#5C635E] dark:text-[#8A928D]">Authority scope</span>
+            <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4]">SDRF Incident Commander (Level 1)</span>
+          </div>
+        </section>
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden divide-y divide-slate-100">
+        {/* Section: Display & Theme */}
+        <section className="space-y-2">
+          <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#5C635E] dark:text-[#8A928D]">
+            Display & Ops Mode
+          </div>
+
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] divide-y divide-[#D8D4CA] dark:divide-[#2A302D]">
+            {/* Ops Dark Mode Toggle */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {isOpsMode ? (
+                  <Moon className="w-4 h-4 text-[#8A928D]" strokeWidth={1.5} />
+                ) : (
+                  <Sun className="w-4 h-4 text-[#5C635E]" strokeWidth={1.5} />
+                )}
+                <div>
+                  <div className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                    Dark Ops Mode
+                  </div>
+                  <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                    High-contrast air-traffic console palette
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isOpsMode}
+                onClick={onToggleOpsMode}
+                className={`w-11 h-6 flex items-center rounded-[999px] p-0.5 transition-colors border ${
+                  isOpsMode 
+                    ? 'bg-[#1A1D1B] dark:bg-[#ECEAE4] border-[#1A1D1B] dark:border-[#ECEAE4]' 
+                    : 'bg-[#ECE9E2] border-[#D8D4CA]'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full transition-transform duration-150 ${
+                    isOpsMode 
+                      ? 'translate-x-5 bg-[#171B19]' 
+                      : 'translate-x-0 bg-[#FAF9F6] border border-[#D8D4CA]'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Role Perspective Toggle */}
+            <div className="p-3 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                  Active view mode
+                </div>
+                <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  Switch between Admin console and Resident field guide
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleRole}
+                className="px-2.5 py-1 text-xs font-mono border border-[#D8D4CA] dark:border-[#2A302D] rounded-[4px] bg-[#ECE9E2] dark:bg-[#2A302D] hover:bg-[#D8D4CA] dark:hover:bg-[#3A423E] text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors"
+              >
+                {userRole === 'admin' ? 'Admin' : 'Resident'}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Emergency Preferences */}
+        <section className="space-y-2">
+          <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#5C635E] dark:text-[#8A928D]">
+            Field Preferences
+          </div>
+
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] divide-y divide-[#D8D4CA] dark:divide-[#2A302D]">
             {/* Language */}
-            <div className="p-3.5 flex items-center justify-between hover:bg-slate-50/60 transition-colors">
-              <div className="flex items-center gap-3">
-                <Languages className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">Language</span>
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Languages className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                <span className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">Language</span>
               </div>
-              <button 
-                onClick={() => setLanguage(language === 'Hindi' ? 'English' : 'Hindi')}
-                className="text-[14px] font-medium text-slate-500 hover:text-slate-800 transition-colors"
-              >
-                {language}
-              </button>
-            </div>
-
-            {/* SMS Alerts */}
-            <div className="p-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">SMS alerts</span>
+              <div className="flex items-center gap-1 font-mono text-xs">
+                {['Hindi', 'English'].map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(lang);
+                      if (onShowToast) onShowToast(`Interface language set to ${lang}`, 'info');
+                    }}
+                    className={`px-2 py-0.5 rounded-[4px] border transition-colors ${
+                      language === lang
+                        ? 'bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#171B19] border-[#1A1D1B] dark:border-[#ECEAE4]'
+                        : 'border-[#D8D4CA] dark:border-[#2A302D] text-[#5C635E] dark:text-[#8A928D]'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
               </div>
-              <button
-                onClick={() => setSmsAlerts(!smsAlerts)}
-                className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                  smsAlerts ? 'bg-[#9a3412]' : 'bg-slate-300'
-                }`}
-              >
-                <div
-                  className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200 ${
-                    smsAlerts ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Offline Maps */}
-            <div className="p-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Map className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">Offline maps</span>
-              </div>
-              <button
-                onClick={() => setOfflineMaps(!offlineMaps)}
-                className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                  offlineMaps ? 'bg-[#9a3412]' : 'bg-slate-300'
-                }`}
-              >
-                <div
-                  className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200 ${
-                    offlineMaps ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
             </div>
 
             {/* Siren on Emergency */}
-            <div className="p-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Volume2 className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">Siren on emergency</span>
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Volume2 className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                <div>
+                  <div className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                    Siren on critical alert
+                  </div>
+                  <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                    Web Audio dual-tone 650/950 Hz
+                  </div>
+                </div>
               </div>
               <button
+                type="button"
+                role="switch"
+                aria-checked={sirenOnEmergency}
                 onClick={() => setSirenOnEmergency(!sirenOnEmergency)}
-                className={`w-12 h-7 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                  sirenOnEmergency ? 'bg-[#9a3412]' : 'bg-slate-200'
+                className={`w-11 h-6 flex items-center rounded-[999px] p-0.5 transition-colors border ${
+                  sirenOnEmergency 
+                    ? 'bg-[#1A1D1B] dark:bg-[#ECEAE4] border-[#1A1D1B] dark:border-[#ECEAE4]' 
+                    : 'bg-[#ECE9E2] border-[#D8D4CA]'
                 }`}
               >
                 <div
-                  className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200 ${
-                    sirenOnEmergency ? 'translate-x-5' : 'translate-x-0'
+                  className={`w-5 h-5 rounded-full transition-transform duration-150 ${
+                    sirenOnEmergency 
+                      ? 'translate-x-5 bg-[#171B19]' 
+                      : 'translate-x-0 bg-[#FAF9F6] border border-[#D8D4CA]'
                   }`}
                 />
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* Section: ACCOUNT */}
-        <div>
-          <span className="text-[11px] font-extrabold text-slate-500 tracking-wider uppercase block mb-2 px-1">
-            ACCOUNT
-          </span>
-
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden divide-y divide-slate-100">
-            {/* Family Members */}
-            <div className="p-3.5 flex items-center justify-between hover:bg-slate-50/60 cursor-pointer transition-colors">
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">Family members</span>
+            {/* SMS Relay */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                <div>
+                  <div className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                    SMS emergency fallback
+                  </div>
+                  <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                    Auto-forward via cellular tower
+                  </div>
+                </div>
               </div>
-              <span className="text-[14px] font-medium text-slate-500">
-                3 linked
-              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={smsAlerts}
+                onClick={() => setSmsAlerts(!smsAlerts)}
+                className={`w-11 h-6 flex items-center rounded-[999px] p-0.5 transition-colors border ${
+                  smsAlerts 
+                    ? 'bg-[#1A1D1B] dark:bg-[#ECEAE4] border-[#1A1D1B] dark:border-[#ECEAE4]' 
+                    : 'bg-[#ECE9E2] border-[#D8D4CA]'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full transition-transform duration-150 ${
+                    smsAlerts 
+                      ? 'translate-x-5 bg-[#171B19]' 
+                      : 'translate-x-0 bg-[#FAF9F6] border border-[#D8D4CA]'
+                  }`}
+                />
+              </button>
             </div>
 
-            {/* App Settings */}
-            <div className="p-3.5 flex items-center justify-between hover:bg-slate-50/60 cursor-pointer transition-colors">
-              <div className="flex items-center gap-3">
-                <SettingsIcon className="w-5 h-5 text-slate-600" strokeWidth={2} />
-                <span className="text-[14.5px] font-medium text-slate-800">App settings</span>
+            {/* Offline Maps Cache */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <HardDrive className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                <div>
+                  <div className="text-sm font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">
+                    Offline topographic pack
+                  </div>
+                  <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                    Cached: <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">{cacheSize}</span>
+                  </div>
+                </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" strokeWidth={2.4} />
+              <button
+                type="button"
+                onClick={handleClearCache}
+                className="px-2.5 py-1 text-xs font-mono border border-[#D8D4CA] dark:border-[#2A302D] rounded-[4px] bg-[#ECE9E2] dark:bg-[#2A302D] hover:bg-[#D8D4CA] dark:hover:bg-[#3A423E] text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors"
+              >
+                Clear cache
+              </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Banner: ZeroDay Mesh Active */}
-        <div className="bg-[#f0f5ff] border border-blue-100/90 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
-          <div className="w-8 h-8 rounded-xl bg-white border border-orange-200 flex items-center justify-center flex-shrink-0 shadow-xs">
-            <Shield className="w-4 h-4 text-[#c2410c]" strokeWidth={2.2} />
+        {/* Section: LoRA Mesh Diagnostics */}
+        <section className="space-y-2">
+          <div className="text-[11px] font-mono uppercase tracking-[0.06em] text-[#5C635E] dark:text-[#8A928D]">
+            LoRA Mesh Diagnostics
           </div>
-          <div>
-            <h4 className="text-[14.5px] font-bold text-slate-900 leading-tight">
-              ZeroDay Mesh Active
-            </h4>
-            <p className="text-[12px] text-slate-600 font-normal mt-1 leading-snug">
-              Critical relay broadcasts work without cellular connectivity via local beaconing.
-            </p>
-          </div>
-        </div>
 
-        {/* Sign Out Button */}
-        <div className="pt-1">
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] divide-y divide-[#D8D4CA] dark:divide-[#2A302D]">
+            <div className="p-3 flex items-center justify-between text-xs">
+              <span className="text-[#5C635E] dark:text-[#8A928D]">Network identifier</span>
+              <span className="font-mono font-medium text-[#1A1D1B] dark:text-[#ECEAE4]">ZD-MESH-IN-912</span>
+            </div>
+
+            <div className="p-3 flex items-center justify-between text-xs">
+              <span className="text-[#5C635E] dark:text-[#8A928D]">Routing protocol</span>
+              <span className="font-mono font-medium text-[#1A1D1B] dark:text-[#ECEAE4]">v2.4.1 Flood-R</span>
+            </div>
+
+            <div className="p-3 flex items-center justify-between text-xs">
+              <span className="text-[#5C635E] dark:text-[#8A928D]">Active peer nodes</span>
+              <span className="font-mono font-medium text-[#1A1D1B] dark:text-[#ECEAE4]">9 nodes in range</span>
+            </div>
+
+            <div className="p-3 flex items-center justify-between text-xs">
+              <span className="text-[#5C635E] dark:text-[#8A928D]">Beacon status</span>
+              <div className="flex items-center gap-1.5 font-mono text-[#2E7D4F] dark:text-[#3FA66A]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D4F] dark:bg-[#3FA66A]" />
+                <span>Operational (868.10 MHz)</span>
+              </div>
+            </div>
+
+            <div className="p-3 flex items-center justify-between">
+              <span className="text-xs text-[#5C635E] dark:text-[#8A928D]">Beacon calibration</span>
+              <button
+                type="button"
+                onClick={handleRecalibrateMesh}
+                disabled={isCalibrating}
+                className="px-3 py-1.5 text-xs font-mono border border-[#D8D4CA] dark:border-[#2A302D] rounded-[4px] bg-[#ECE9E2] dark:bg-[#2A302D] hover:bg-[#D8D4CA] dark:hover:bg-[#3A423E] text-[#1A1D1B] dark:text-[#ECEAE4] transition-colors flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3 h-3 ${isCalibrating ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+                <span>{isCalibrating ? 'Calibrating...' : 'Recalibrate node'}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Session Action */}
+        <div className="pt-2 flex flex-col gap-2">
           <button 
-            onClick={() => onShowToast ? onShowToast("Session ended. Signed out securely.", "info") : null}
-            className="flex items-center gap-2.5 text-[#c2410c] hover:text-[#9a3412] font-bold text-[15px] px-1 py-2 transition-colors active:opacity-75"
+            type="button"
+            onClick={() => onShowToast ? onShowToast('Session ended. Node unmounted.', 'info') : null}
+            className="w-full h-11 rounded-[8px] border border-[#C1271D]/40 text-[#C1271D] dark:text-[#D9382E] hover:bg-[#C1271D]/10 font-medium text-sm flex items-center justify-center gap-2 transition-colors active:opacity-75"
           >
-            <LogOut className="w-5 h-5 text-[#c2410c]" strokeWidth={2.4} />
-            <span>Sign out</span>
+            <LogOut className="w-4 h-4" strokeWidth={1.5} />
+            <span>End operator session</span>
           </button>
         </div>
 
-        {/* Footer Build & Agency Info */}
-        <div className="pt-2 text-center text-[11px] text-slate-400 font-medium space-y-0.5 pb-2">
+        {/* Agency Footer */}
+        <div className="pt-2 text-center text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] space-y-0.5">
           <p>ZeroDay Civic Engine · v3.4.1 (Build 409)</p>
           <p>Disaster Management Cell, District Administration</p>
         </div>

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, CheckCircle2, Bell, MessageSquare, Network, 
-  Megaphone, ChevronRight 
-} from 'lucide-react';
+import { ArrowLeft, Megaphone, ChevronRight, Network } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
-export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
+export default function AlertControlScreen({ 
+  onBack, 
+  onOpenManualAlert, 
+  onOpenGateway,
+  userRole = 'admin'
+}) {
   const [autoMode, setAutoMode] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(true);
@@ -14,283 +16,215 @@ export default function AlertControlScreen({ onBack, onOpenManualAlert }) {
   const activeCount = (pushEnabled ? 1 : 0) + (smsEnabled ? 1 : 0) + (meshEnabled ? 1 : 0);
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc] text-slate-900 pb-20">
+    <div className="flex flex-col min-h-full bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] pb-12 transition-colors">
       {/* Top Header */}
-      <TopHeader currentRegion="All Regions" />
+      <TopHeader currentRegion="Alert Dispatch" userRole={userRole} />
 
       {/* Subheader */}
-      <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <button 
             onClick={onBack}
-            className="p-1.5 -ml-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+            title="Return"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-800" strokeWidth={2.4} />
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           </button>
           <div>
-            <h1 className="text-[19px] font-bold text-slate-900 tracking-tight leading-tight">
-              Alert Control
+            <h1 className="text-base font-semibold tracking-tight leading-tight">
+              Alert dispatch control
             </h1>
-            <p className="text-[11.5px] text-slate-500 font-medium leading-none mt-0.5">
-              Rampur Ward · Zone 04
+            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+              Sector 4B · Multi-channel broadcast
             </p>
           </div>
         </div>
 
-        {/* Auto Mode Switch */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-600">Auto</span>
+        {/* Auto mode toggle */}
+        <div className="flex items-center gap-1.5 font-mono text-xs">
+          <span className="text-[#5C635E] dark:text-[#8A928D] text-[11px]">Auto:</span>
           <button
             onClick={() => setAutoMode(!autoMode)}
-            className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
-              autoMode ? 'bg-[#9a3412]' : 'bg-slate-300'
+            className={`w-9 h-5 rounded-full p-0.5 transition-calm ${
+              autoMode ? 'bg-[#1A1D1B] dark:bg-[#ECEAE4]' : 'bg-[#D8D4CA] dark:bg-[#2A302D]'
             }`}
           >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
-                autoMode ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
+            <div className={`w-4 h-4 rounded-full bg-white dark:bg-[#0F1211] transition-transform ${
+              autoMode ? 'translate-x-4' : 'translate-x-0'
+            }`} />
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-3 flex flex-col gap-4">
-        {/* Info Banner */}
-        <div className="bg-[#fef3eb] border border-[#fed7aa] rounded-2xl p-3 flex items-start gap-2.5 shadow-sm">
-          <CheckCircle2 className="w-5 h-5 text-[#c2410c] flex-shrink-0 mt-0.5" />
-          <p className="text-[12.5px] text-slate-700 font-medium leading-snug">
-            Auto mode active — alerts trigger from telemetry sensor thresholds
-          </p>
-        </div>
-
-        {/* Alert Channels Section */}
-        <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <h3 className="text-[17px] font-bold text-slate-900 tracking-tight">
-              Alert Channels
-            </h3>
-            <span className="bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-              {activeCount} active
+      <div className="p-4 space-y-4">
+        {/* Single Boxed Hero Block: Dispatch Status */}
+        <section 
+          aria-label="Dispatch status"
+          className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] p-3.5 bg-[#FAF9F6] dark:bg-[#171B19] space-y-1.5"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              System trigger mode
+            </span>
+            <span className="text-[11px] font-mono text-[#2E7D4F] dark:text-[#389E65] font-semibold">
+              {activeCount} of 3 channels armed
             </span>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {/* Channel 1: Internet Push */}
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#fff7ed] border border-[#ffedd5] flex items-center justify-center text-[#c2410c]">
-                    <Bell className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-[15.5px] font-bold text-slate-900 leading-tight">
-                      Internet Push
-                    </h4>
-                  </div>
+          <p className="text-xs text-[#1A1D1B] dark:text-[#ECEAE4] leading-relaxed">
+            {autoMode 
+              ? 'Autonomous dispatch active. Alerts trigger when sensor thresholds cross 50 mm/h rain or 80% saturation.'
+              : 'Manual override active. Autonomous triggers paused. Supervisor confirmation required.'}
+          </p>
+        </section>
+
+        {/* Primary Action Button */}
+        <section aria-label="Manual broadcast trigger">
+          <button
+            onClick={onOpenManualAlert}
+            className="w-full h-11 px-4 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-2 transition-calm hover:opacity-90"
+          >
+            <Megaphone className="w-4 h-4" strokeWidth={1.5} />
+            <span>Send manual alert</span>
+          </button>
+        </section>
+
+        {/* Channel List as Rows with Status, Latency, and Reach in Mono */}
+        <section aria-label="Broadcast delivery channels">
+          <div className="py-1 mb-1.5 flex items-center justify-between">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Transmission channels
+            </span>
+          </div>
+
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
+            {/* Channel 1: Mobile Push */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${pushEnabled ? 'bg-[#2E7D4F] dark:bg-[#389E65]' : 'bg-[#D8D4CA]'}`} />
+                  <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">Mobile application push</span>
                 </div>
-
-                <button
-                  onClick={() => setPushEnabled(!pushEnabled)}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                    pushEnabled ? 'bg-[#9a3412]' : 'bg-slate-300'
-                  }`}
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
-                      pushEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] space-x-3">
+                  <span>Reach: 1,240 nodes</span>
+                  <span>Latency: 2s</span>
+                </div>
               </div>
 
-              <p className="text-[12px] text-slate-500 mt-2">
-                Sends alerts through ZeroDay mobile app
-              </p>
-
-              <div className="flex items-center gap-2 mt-2">
-                <span className="bg-[#ffedd5] text-[#9a3412] text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                  Requires app
-                </span>
-                <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                  High reliability
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
-                <span>1,240 users · Avg 2s delivery</span>
-                <span>Last: 4:12 PM</span>
-              </div>
+              <input
+                type="checkbox"
+                checked={pushEnabled}
+                onChange={() => setPushEnabled(!pushEnabled)}
+                className="w-4 h-4 rounded text-[#1A1D1B] accent-[#1A1D1B] cursor-pointer"
+              />
             </div>
 
             {/* Channel 2: SMS Broadcast */}
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#fff7ed] border border-[#ffedd5] flex items-center justify-center text-[#c2410c]">
-                    <MessageSquare className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-[15.5px] font-bold text-slate-900 leading-tight">
-                      SMS Broadcast
-                    </h4>
-                  </div>
+            <div className="p-3 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${smsEnabled ? 'bg-[#2E7D4F] dark:bg-[#389E65]' : 'bg-[#D8D4CA]'}`} />
+                  <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">Cellular SMS broadcast</span>
                 </div>
-
-                <button
-                  onClick={() => setSmsEnabled(!smsEnabled)}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                    smsEnabled ? 'bg-[#9a3412]' : 'bg-slate-300'
-                  }`}
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
-                      smsEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] space-x-3">
+                  <span>Reach: 8,450 numbers</span>
+                  <span>Latency: 8s</span>
+                </div>
               </div>
 
-              <p className="text-[12px] text-slate-500 mt-2">
-                Reaches all registered phones — no app needed
-              </p>
-
-              <div className="flex items-center gap-2 mt-2">
-                <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                  No app required
-                </span>
-                <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                  ₹0.12 / SMS
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
-                <span>8,450 numbers · Hindi & English</span>
-                <span>Last: 4:12 PM</span>
-              </div>
+              <input
+                type="checkbox"
+                checked={smsEnabled}
+                onChange={() => setSmsEnabled(!smsEnabled)}
+                className="w-4 h-4 rounded text-[#1A1D1B] accent-[#1A1D1B] cursor-pointer"
+              />
             </div>
 
             {/* Channel 3: Offline BLE Mesh */}
-            <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#fff7ed] border border-[#ffedd5] flex items-center justify-center text-[#c2410c]">
-                    <Network className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-[15.5px] font-bold text-slate-900 leading-tight">
-                      Offline BLE Mesh
-                    </h4>
-                  </div>
+            <div className="p-3 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${meshEnabled ? 'bg-[#2E7D4F] dark:bg-[#389E65]' : 'bg-[#D8D4CA]'}`} />
+                  <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">Offline BLE mesh</span>
                 </div>
-
-                <button
-                  onClick={() => setMeshEnabled(!meshEnabled)}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
-                    meshEnabled ? 'bg-[#9a3412]' : 'bg-slate-300'
-                  }`}
-                >
-                  <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
-                      meshEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <p className="text-[12px] text-slate-500 mt-2">
-                Works without cell towers or grid power
-              </p>
-
-              <div className="flex items-center justify-between mt-3">
-                <span className="text-xs font-bold text-slate-900">
-                  9 / 12 nodes online
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {[...Array(9)].map((_, i) => (
-                    <span key={i} className="w-2 h-2 rounded-full bg-[#9a3412]" />
-                  ))}
-                  {[...Array(3)].map((_, i) => (
-                    <span key={i} className="w-2 h-2 rounded-full bg-slate-200" />
-                  ))}
+                <div className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] space-x-3">
+                  <span>Reach: 9 peer nodes</span>
+                  <span>Latency: 180ms/hop</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
-                <span>2.4 km cluster coverage</span>
-                <span className="font-semibold text-slate-700">Battery 92%</span>
-              </div>
+              <input
+                type="checkbox"
+                checked={meshEnabled}
+                onChange={() => setMeshEnabled(!meshEnabled)}
+                className="w-4 h-4 rounded text-[#1A1D1B] accent-[#1A1D1B] cursor-pointer"
+              />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Primary Action */}
-        <div className="flex flex-col items-center gap-2 pt-1">
-          <button
-            onClick={onOpenManualAlert}
-            className="w-full bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold text-sm py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-orange-950/15 active:scale-[0.99] transition-all"
-          >
-            <Megaphone className="w-4 h-4" />
-            <span>Send Manual Alert</span>
-          </button>
-          <p className="text-[11.5px] text-slate-400 text-center leading-snug px-3">
-            Dispatches immediate broadcast notice to all residents via active channels
-          </p>
-        </div>
-
-        {/* Recent Activity Section */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[16.5px] font-bold text-slate-900 tracking-tight">
-              Recent Activity
-            </h3>
-            <button className="text-xs font-bold text-[#a83210] hover:underline">
-              View Log
+        {/* Mesh & Gateway shortcut row */}
+        {onOpenGateway && (
+          <section aria-label="Mesh gateway link">
+            <button
+              onClick={onOpenGateway}
+              className="w-full h-11 px-3 border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] text-xs font-semibold flex items-center justify-between hover:bg-[#ECE9E2]/50 dark:hover:bg-[#2A302D]/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Network className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+                <span className="text-[#1A1D1B] dark:text-[#ECEAE4]">Inspect mesh and LoRA hardware gateway</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
             </button>
+          </section>
+        )}
+
+        {/* Recent Transmission Audit Log */}
+        <section aria-label="Recent broadcast audit log">
+          <div className="py-1 mb-1.5 flex items-center justify-between">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Transmission log
+            </span>
           </div>
 
-          <div className="flex flex-col divide-y divide-slate-100">
-            {/* Activity 1 */}
-            <div className="py-2.5 flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-[#ffedd5] flex items-center justify-center text-[#c2410c] mt-0.5 flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4" />
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
+            <div className="p-3 flex justify-between items-start">
+              <div>
+                <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] block">
+                  Evacuation directive: Sector 4B
+                </span>
+                <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  Push + SMS + BLE · 1,240 deliveries confirmed
+                </span>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[13px] font-bold text-slate-900">
-                    Emergency alert sent via SMS
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    4:12 PM
-                  </span>
-                </div>
-                <p className="text-[11.5px] text-slate-500 mt-0.5">
-                  8,281 of 8,450 delivered · 98%
-                </p>
-              </div>
+              <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">16:12</span>
             </div>
 
-            {/* Activity 2 */}
-            <div className="py-2.5 flex items-start gap-3">
-              <div className="w-5 h-5 rounded-full bg-[#ffedd5] flex items-center justify-center text-[#c2410c] mt-0.5 flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4" />
+            <div className="p-3 flex justify-between items-start">
+              <div>
+                <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] block">
+                  Sluice gate 03 aperture 40%
+                </span>
+                <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  Manual hydraulic override confirmed
+                </span>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[13px] font-bold text-slate-900">
-                    Advisory sent via Push
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    2:40 PM
-                  </span>
-                </div>
-                <p className="text-[11.5px] text-slate-500 mt-0.5">
-                  1,240 of 1,240 delivered · 100%
-                </p>
+              <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">14:45</span>
+            </div>
+
+            <div className="p-3 flex justify-between items-start">
+              <div>
+                <span className="font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] block">
+                  Rainfall threshold 50 mm/h exceeded
+                </span>
+                <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  Autonomous sensor advisory triggered
+                </span>
               </div>
+              <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">11:30</span>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

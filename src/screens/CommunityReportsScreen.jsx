@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { 
-  Check, ThumbsUp, MessageSquare, Share2, MapPin, Plus, Radio 
-} from 'lucide-react';
+import { ThumbsUp, MessageSquare, Share2, Plus, Check } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
-export default function CommunityReportsScreen({ onOpenAddReport, onShowToast }) {
+export default function CommunityReportsScreen({ 
+  onOpenAddReport, 
+  onShowToast,
+  userRole = 'admin'
+}) {
   const [reports, setReports] = useState([
     {
       id: 1,
       initials: 'MK',
       name: 'Meena K.',
       isVerified: true,
-      timeAgo: '12 min ago',
-      location: 'Rampur Sector 4',
-      badge: { type: 'distance', text: '0.8 km' },
-      body: 'Waterlogging near the main market, avoid the route. Inundation is reaching curb level near the crossroad.',
+      timeAgo: '12m ago',
+      location: 'Rampur Sector 4B',
+      badge: '0.8 km',
+      body: 'Waterlogging near the market crossing. Runoff reached curb level at 14:15.',
       likes: 14,
       isLiked: false,
       comments: 3,
@@ -24,14 +26,27 @@ export default function CommunityReportsScreen({ onOpenAddReport, onShowToast })
       initials: 'SP',
       name: 'Suresh P.',
       isVerified: false,
-      timeAgo: '28 min ago',
-      location: 'Rampur Bridge',
-      badge: { type: 'alert', text: 'Closure' },
-      body: 'Rampur bridge road is closed, NDRF on site. Diverting light motor vehicles through outer ring canal bypass.',
+      timeAgo: '28m ago',
+      location: 'Rampur Bridge Crossing',
+      badge: 'Closure',
+      body: 'Rampur bridge closed to light vehicles. Local police on site diverting toward canal bypass.',
       likes: 31,
       isLiked: false,
       comments: 7,
     },
+    {
+      id: 3,
+      initials: 'AK',
+      name: 'Anand K.',
+      isVerified: true,
+      timeAgo: '45m ago',
+      location: 'Bhelupur Ring Road',
+      badge: 'Clear',
+      body: 'Canal retaining walls holding nominal head. Drainage culverts flowing unobstructed.',
+      likes: 8,
+      isLiked: false,
+      comments: 1,
+    }
   ]);
 
   const handleLike = (id) => {
@@ -48,139 +63,119 @@ export default function CommunityReportsScreen({ onOpenAddReport, onShowToast })
   };
 
   const handleShare = (report) => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Incident: ${report.name} in ${report.location}`,
-        text: report.body,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      if (onShowToast) {
-        onShowToast("Advisory link copied to clipboard", "success");
-      }
+    if (onShowToast) {
+      onShowToast(`Report link copied for ${report.location}.`, "success");
     }
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc] text-slate-900 pb-20">
+    <div className="flex flex-col min-h-full bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] pb-24 transition-colors">
       {/* Top Header */}
-      <TopHeader currentRegion="All Regions" />
+      <TopHeader currentRegion="Citizen Reports" userRole={userRole} />
 
-      <div className="px-4 py-4 flex flex-col gap-4">
-        {/* Title & Live Feed Badge */}
+      {/* Subheader */}
+      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
         <div>
-          <div className="flex items-center justify-between">
-            <h1 className="text-[26px] font-black text-slate-900 tracking-tight">
-              Community reports
-            </h1>
-            <span className="bg-[#ffedd5] text-[#9a3412] text-[11.5px] font-extrabold px-2.5 py-1 rounded-full border border-[#fed7aa]">
-              Live Feed
-            </span>
-          </div>
-          <p className="text-[12.5px] text-slate-500 font-medium mt-0.5">
-            Verified neighborhood telemetry and citizen advisories
+          <h1 className="text-base font-semibold tracking-tight leading-tight">
+            Field observations
+          </h1>
+          <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+            Citizen reports and ground truth advisories
           </p>
         </div>
 
-        {/* Reports Feed */}
-        <div className="flex flex-col gap-3.5">
-          {reports.map((report) => (
-            <div 
-              key={report.id}
-              className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden pl-5"
-            >
-              {/* Burnt Orange Vertical Left Accent Stripe */}
-              <div className="absolute left-0 top-0 bottom-0 w-[4.5px] bg-[#c2410c]" />
+        <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+          {reports.length} submissions
+        </span>
+      </div>
 
-              {/* Author Row */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-full bg-[#ffedd5] border border-[#fed7aa] flex items-center justify-center text-[#9a3412] font-bold text-xs">
-                    {report.initials}
+      <div className="p-4 space-y-4">
+        {/* Reports Feed as Clean Rows (Divided by 1px borders) */}
+        <section aria-label="Field reports feed">
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
+            {reports.map((report) => (
+              <article key={report.id} className="p-3.5 space-y-2 bg-[#FAF9F6] dark:bg-[#171B19]">
+                {/* Author & Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-[4px] bg-[#ECE9E2] dark:bg-[#2A302D] flex items-center justify-center font-mono font-semibold text-[11px] text-[#1A1D1B] dark:text-[#ECEAE4]">
+                      {report.initials}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-xs text-[#1A1D1B] dark:text-[#ECEAE4]">
+                          {report.name}
+                        </span>
+                        {report.isVerified && (
+                          <span className="text-[10px] font-mono text-[#2E7D4F] dark:text-[#389E65] border border-[#2E7D4F]/40 dark:border-[#389E65]/40 px-1 py-0.2 rounded-[2px] flex items-center gap-0.5">
+                            <Check className="w-2.5 h-2.5" strokeWidth={2} />
+                            <span>Verified</span>
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] block">
+                        {report.location} · {report.timeAgo}
+                      </span>
+                    </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[15px] font-bold text-slate-900">
-                        {report.name}
-                      </span>
-                      {report.isVerified && (
-                        <span className="w-4 h-4 rounded-full bg-[#22c55e] text-white flex items-center justify-center text-[10px] font-black">
-                          <Check className="w-2.5 h-2.5 text-white" strokeWidth={3.5} />
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[11.5px] text-slate-400 font-medium">
-                      {report.timeAgo} · {report.location}
+                  <span className="text-[10.5px] font-mono text-[#5C635E] dark:text-[#8A928D] border border-[#D8D4CA] dark:border-[#2A302D] px-1.5 py-0.5 rounded-[4px]">
+                    {report.badge}
+                  </span>
+                </div>
+
+                {/* Body Content */}
+                <p className="text-xs text-[#1A1D1B] dark:text-[#ECEAE4] leading-relaxed">
+                  {report.body}
+                </p>
+
+                {/* Interactions Row */}
+                <div className="flex items-center justify-between pt-1 border-t border-[#D8D4CA]/50 dark:border-[#2A302D]/60 text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleLike(report.id)}
+                      className={`flex items-center gap-1 transition-colors ${
+                        report.isLiked ? 'text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold' : 'hover:text-[#1A1D1B]'
+                      }`}
+                    >
+                      <ThumbsUp className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <span>{report.likes}</span>
+                    </button>
+
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <span>{report.comments}</span>
                     </span>
                   </div>
-                </div>
 
-                {report.badge.type === 'distance' && (
-                  <span className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-slate-500" />
-                    <span>{report.badge.text}</span>
-                  </span>
-                )}
-                {report.badge.type === 'alert' && (
-                  <span className="bg-[#fee2e2] text-[#991b1b] text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#dc2626]" />
-                    <span>{report.badge.text}</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Report Body */}
-              <p className="text-[13.5px] text-slate-700 font-normal mt-3 leading-relaxed">
-                {report.body}
-              </p>
-
-              {/* Actions Footer */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-slate-500">
-                <div className="flex items-center gap-4">
-                  <button 
-                    onClick={() => handleLike(report.id)}
-                    className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
-                      report.isLiked 
-                        ? 'text-[#c2410c]' 
-                        : 'hover:text-slate-900'
-                    }`}
+                  <button
+                    onClick={() => handleShare(report)}
+                    className="hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors flex items-center gap-1"
+                    title="Share incident report"
                   >
-                    <ThumbsUp className={`w-4 h-4 ${report.isLiked ? 'fill-[#c2410c]' : ''}`} />
-                    <span>{report.likes}</span>
-                  </button>
-
-                  <button className="flex items-center gap-1.5 text-xs font-semibold hover:text-slate-900 transition-colors">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{report.comments}</span>
+                    <Share2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    <span>Share</span>
                   </button>
                 </div>
-
-                <button 
-                  onClick={() => handleShare(report)}
-                  className="p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Add Report Button */}
-        <div className="flex flex-col items-center gap-2 pt-2">
-          <button
-            onClick={onOpenAddReport}
-            className="w-full bg-white hover:bg-orange-50/50 text-[#9a3412] font-bold text-sm py-3 px-4 rounded-2xl border-2 border-[#9a3412] flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] transition-all"
-          >
-            <Plus className="w-4 h-4 text-[#9a3412]" strokeWidth={3} />
-            <span>Add a report</span>
-          </button>
-          <p className="text-[11.5px] text-slate-400 text-center leading-snug px-3">
-            Reports undergo automated telemetry correlation
-          </p>
-        </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
+
+      {/* Sticky Bottom Thumb Zone: File Report Button */}
+      <aside 
+        aria-label="Submit observation action"
+        className="fixed bottom-0 left-0 right-0 max-w-[400px] mx-auto p-3 bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20"
+      >
+        <button
+          onClick={onOpenAddReport}
+          className="w-full h-11 px-4 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm hover:opacity-90"
+        >
+          <Plus className="w-4 h-4" strokeWidth={1.5} />
+          <span>Submit field observation</span>
+        </button>
+      </aside>
     </div>
   );
 }

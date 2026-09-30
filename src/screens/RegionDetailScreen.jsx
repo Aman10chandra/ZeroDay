@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  ArrowLeft, Droplets, Waves, Radio, TrendingUp, AlertTriangle, 
-  Download, BellRing, Video, ChevronRight, BarChart2, Plus, MapPin, Activity, ShieldAlert
+  ArrowLeft, Download, BellRing, Video, ChevronRight, Sliders, MapPin, Plus
 } from 'lucide-react';
 import TopHeader from '../components/TopHeader';
 
@@ -11,377 +10,201 @@ export default function RegionDetailScreen({
   onIssueSiren,
   onOpenAddShelter,
   onOpenEvacuationMap,
-  onShowToast
+  onShowToast,
+  onOpenMPU6050,
+  onOpenAIRiskEngine,
+  userRole = 'admin'
 }) {
-  const [activeTab, setActiveTab] = useState('rain');
   const [telemetrySpan, setTelemetrySpan] = useState('7D');
-  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Data for chart based on span
-  const chartDataMap = {
+  // Precipitation Chart Data
+  const chartData = {
     '7D': {
-      labels: ['May 10', 'May 11', 'May 12', 'May 13', 'May 14', 'May 15', 'Today'],
+      labels: ['10 May', '11 May', '12 May', '13 May', '14 May', '15 May', 'Today'],
       values: [12, 28, 33, 44, 56, 64, 68],
-      peak: '68 mm/hr',
+      peak: '68 mm/h',
     },
     '30D': {
-      labels: ['Apr 16', 'Apr 23', 'Apr 30', 'May 07', 'May 14', 'Today'],
+      labels: ['16 Apr', '23 Apr', '30 Apr', '07 May', '14 May', 'Today'],
       values: [8, 14, 22, 38, 59, 68],
-      peak: '68 mm/hr',
+      peak: '68 mm/h',
     },
     '90D': {
       labels: ['Feb', 'Mar', 'Apr', 'May', 'Today'],
       values: [5, 12, 25, 48, 68],
-      peak: '68 mm/hr',
+      peak: '68 mm/h',
     }
-  };
+  }[telemetrySpan];
 
-  const currentChart = chartDataMap[telemetrySpan];
-
-  // SVG Chart Dimensions
-  const svgWidth = 330;
-  const svgHeight = 120;
+  const svgWidth = 320;
+  const svgHeight = 110;
   const maxY = 75;
 
-  const points = currentChart.values.map((val, idx) => {
-    const x = (idx / (currentChart.values.length - 1)) * (svgWidth - 40) + 25;
+  const points = chartData.values.map((val, idx) => {
+    const x = (idx / (chartData.values.length - 1)) * (svgWidth - 36) + 24;
     const y = svgHeight - (val / maxY) * (svgHeight - 20) - 10;
-    return { x, y, val, label: currentChart.labels[idx] };
+    return { x, y, val, label: chartData.labels[idx] };
   });
 
   const dangerY = svgHeight - (50 / maxY) * (svgHeight - 20) - 10;
 
-  const generateCurvedPath = (pts) => {
-    if (pts.length < 2) return '';
-    let d = `M ${pts[0].x} ${pts[0].y}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = i > 0 ? pts[i - 1] : pts[0];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = i != pts.length - 2 ? pts[i + 2] : p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-    return d;
-  };
-
-  const linePath = generateCurvedPath(points);
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
+  // Path generator (1.5px clean line, no area fill)
+  const linePath = points.reduce((acc, pt, i) => {
+    return i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`;
+  }, '');
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f8fafc] text-slate-900 pb-20">
+    <div className="flex flex-col min-h-full bg-[#FAF9F6] dark:bg-[#171B19] text-[#1A1D1B] dark:text-[#ECEAE4] pb-24 transition-colors">
       {/* Top Header */}
-      <TopHeader currentRegion="All Regions" />
+      <TopHeader currentRegion="Rampur Ward" userRole={userRole} />
 
-      {/* Sub-header with Back Arrow, Title, and RED ALERT Pill */}
-      <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-slate-100">
-        <div className="flex items-center gap-3">
+      {/* Subheader */}
+      <div className="px-4 py-2.5 bg-[#FAF9F6] dark:bg-[#171B19] border-b border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <button 
             onClick={onBack}
-            className="p-1.5 -ml-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-colors"
+            className="p-1 -ml-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors"
+            title="Return to territories overview"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-800" strokeWidth={2.4} />
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           </button>
           <div>
-            <h1 className="text-[19px] font-bold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-base font-semibold tracking-tight leading-tight">
               Rampur Ward
             </h1>
-            <p className="text-[11.5px] text-slate-500 font-medium leading-none mt-0.5">
-              Basin Sector 4B · Zone South
+            <p className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D] leading-none mt-0.5">
+              Sector 4B Basin · South Sub-catchment
             </p>
           </div>
         </div>
 
-        {/* RED ALERT Badge */}
-        <div className="flex items-center gap-1.5 bg-[#fee2e2] px-2.5 py-1 rounded-full border border-red-200 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-[#dc2626] animate-ping" />
-          <span className="text-[10.5px] font-extrabold text-[#991b1b] tracking-wider uppercase">
-            RED ALERT
-          </span>
-        </div>
+        <span className="text-[11px] font-mono tracking-wider uppercase font-semibold text-[#C1271D] dark:text-[#D9382E] px-1.5 py-0.5 border border-[#C1271D]/40 dark:border-[#D9382E]/40 rounded-[4px]">
+          Critical
+        </span>
       </div>
 
-      <div className="px-4 py-3 flex flex-col gap-4">
-        {/* Disaster Inundation Emergency Card */}
-        <div className="bg-[#fff1f2] border border-rose-200 rounded-2xl p-3.5 shadow-sm flex flex-col gap-2.5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
-              <h3 className="text-xs font-bold text-rose-900 tracking-wider uppercase">
-                SDRF Red Alert: Basin Sector 4B
-              </h3>
-            </div>
-            <span className="text-[10.5px] font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-md border border-rose-200">
-              Datum Exceeded +1.6m
-            </span>
-          </div>
-          
-          <p className="text-[12px] text-slate-700 leading-relaxed font-normal">
-            Precipitation inflow 62 mm/hr has overrun the retention embankment. Embankment backflow threatens 1,240 households in low quadrants.
-          </p>
-
-          <div className="grid grid-cols-2 gap-2 pt-0.5">
-            <button
-              onClick={onOpenAddShelter}
-              className="bg-[#9a3412] hover:bg-[#7c2d12] text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" strokeWidth={3} />
-              <span>Stage Shelter Havens</span>
-            </button>
-
-            <button
-              onClick={onOpenEvacuationMap}
-              className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#c2410c]" />
-              <span>Evacuation Corridor</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 2x2 Metric Grid */}
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Rainfall */}
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative">
-            <div className="flex items-center justify-between text-slate-500 text-[12px] font-medium">
-              <span>Rainfall</span>
-              <Droplets className="w-4 h-4 text-[#a83210]" />
-            </div>
-            <div className="text-2xl font-black text-slate-900 mt-1">
-              62 <span className="text-xs font-normal text-slate-500">mm/hr</span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#dc2626] mt-1">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>+14% vs 1h ago</span>
-            </div>
-          </div>
-
-          {/* Soil Moisture */}
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative">
-            <div className="flex items-center justify-between text-slate-500 text-[12px] font-medium">
-              <span>Soil moisture</span>
-              <Droplets className="w-4 h-4 text-[#a83210]" />
-            </div>
-            <div className="text-2xl font-black text-slate-900 mt-1">
-              91%
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#b45309] mt-1">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Near saturation</span>
-            </div>
-          </div>
-
-          {/* River Level */}
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative">
-            <div className="flex items-center justify-between text-slate-500 text-[12px] font-medium">
-              <span>River level</span>
-              <Waves className="w-4 h-4 text-[#dc2626]" />
-            </div>
-            <div className="text-xl font-black text-[#dc2626] mt-1.5">
-              Critical
-            </div>
-            <div className="text-[11px] font-medium text-slate-600 mt-1 flex items-center gap-1">
-              <span>⤓ 4.8m (Danger: 4.2m)</span>
-            </div>
-          </div>
-
-          {/* Sensor N-014 */}
-          <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative">
-            <div className="flex items-center justify-between text-slate-500 text-[12px] font-medium">
-              <span>Sensor N-014</span>
-              <Radio className="w-4 h-4 text-[#a83210]" />
-            </div>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#16a34a]" />
-              <span className="text-lg font-black text-slate-900">Online</span>
-            </div>
-            <div className="text-[11px] font-medium text-slate-500 mt-1 flex items-center gap-1">
-              <Activity className="w-3 h-3 text-emerald-600" />
-              <span>Uptime 99.4% · 5s sync</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Selector */}
-        <div className="flex items-center border-b border-slate-200">
-          <button
-            onClick={() => setActiveTab('rain')}
-            className={`pb-2 px-3 text-[13px] font-bold transition-all relative ${
-              activeTab === 'rain' ? 'text-[#a83210]' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Rain History
-            {activeTab === 'rain' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#a83210] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('sensor')}
-            className={`pb-2 px-3 text-[13px] font-medium transition-all relative ${
-              activeTab === 'sensor' ? 'text-[#a83210] font-bold' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Sensor History
-            {activeTab === 'sensor' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#a83210] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('alert')}
-            className={`pb-2 px-3 text-[13px] font-medium transition-all relative ${
-              activeTab === 'alert' ? 'text-[#a83210] font-bold' : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Alert History
-            {activeTab === 'alert' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#a83210] rounded-full" />
-            )}
-          </button>
-        </div>
-
-        {/* Precipitation Telemetry Chart Card */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">
-                Intensity Profile (mm/hr)
-              </span>
-              <h3 className="text-[17px] font-bold text-slate-900 tracking-tight">
-                Precipitation Telemetry
-              </h3>
-            </div>
-            <span className="bg-[#ffedd5] text-[#9a3412] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#fed7aa]">
-              Peak: {currentChart.peak}
-            </span>
-          </div>
-
-          <div className="relative w-full pt-1 pb-2">
-            <svg 
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
-              className="w-full h-32 overflow-visible select-none"
-            >
-              <defs>
-                <linearGradient id="rainGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ea580c" stopOpacity="0.25" />
-                  <stop offset="90%" stopColor="#ea580c" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {[75, 50, 25, 0].map((val) => {
-                const yPos = svgHeight - (val / maxY) * (svgHeight - 20) - 10;
-                return (
-                  <g key={val}>
-                    <text x="5" y={yPos + 3} fill="#94a3b8" fontSize="8.5" fontFamily="sans-serif">
-                      {val}
-                    </text>
-                    <line 
-                      x1="22" 
-                      y1={yPos} 
-                      x2={svgWidth} 
-                      y2={yPos} 
-                      stroke="#f1f5f9" 
-                      strokeWidth="1" 
-                    />
-                  </g>
-                );
-              })}
-
-              <line
-                x1="22"
-                y1={dangerY}
-                x2={svgWidth}
-                y2={dangerY}
-                stroke="#dc2626"
-                strokeWidth="1.2"
-                strokeDasharray="3 3"
-              />
-              <text 
-                x={svgWidth - 5} 
-                y={dangerY - 4} 
-                fill="#dc2626" 
-                fontSize="8.5" 
-                textAnchor="end" 
-                fontWeight="bold"
-              >
-                Danger Threshold (50 mm)
-              </text>
-
-              <path d={areaPath} fill="url(#rainGradient)" />
-
-              <path 
-                d={linePath} 
-                fill="none" 
-                stroke="#9a3412" 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
-              />
-
-              {points.map((pt, i) => (
-                <g key={i} className="cursor-pointer">
-                  <circle
-                    cx={pt.x}
-                    cy={pt.y}
-                    r="4"
-                    fill="#ffffff"
-                    stroke="#9a3412"
-                    strokeWidth="2"
-                    onMouseEnter={() => setHoveredPoint(pt)}
-                    onMouseLeave={() => setHoveredPoint(null)}
-                  />
-                  {hoveredPoint && hoveredPoint.label === pt.label && (
-                    <g>
-                      <rect 
-                        x={pt.x - 22} 
-                        y={pt.y - 24} 
-                        width="44" 
-                        height="18" 
-                        rx="4" 
-                        fill="#1e293b" 
-                      />
-                      <text 
-                        x={pt.x} 
-                        y={pt.y - 12} 
-                        fill="#ffffff" 
-                        fontSize="9" 
-                        textAnchor="middle" 
-                        fontWeight="bold"
-                      >
-                        {pt.val} mm/h
-                      </text>
-                    </g>
-                  )}
-                </g>
-              ))}
-            </svg>
-
-            <div className="flex justify-between items-center px-4 mt-1 text-[10.5px] text-slate-400">
-              {currentChart.labels.map((lbl, idx) => (
-                <span 
-                  key={idx} 
-                  className={idx === currentChart.labels.length - 1 ? "font-bold text-[#a83210]" : ""}
-                >
-                  {lbl}
+      <div className="p-4 space-y-4">
+        {/* Single Boxed Hero Element: Emergency Directive (3px top border + tinted bg) */}
+        <section 
+          role="alert"
+          className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] overflow-hidden bg-[#FAF9F6] dark:bg-[#171B19]"
+        >
+          <div className="h-[3px] bg-[#C1271D] dark:bg-[#D9382E]" />
+          <div className="p-3.5 bg-[#C1271D]/[0.08] dark:bg-[#D9382E]/[0.12] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#C1271D] dark:bg-[#D9382E] animate-slow-pulse flex-shrink-0" />
+                <span className="text-[11px] font-mono uppercase tracking-[0.06em] font-semibold text-[#C1271D] dark:text-[#D9382E]">
+                  Evacuation Directive Active
                 </span>
-              ))}
+              </div>
+              <span className="text-[11px] font-mono text-[#C1271D] dark:text-[#D9382E] font-semibold">
+                Datum +1.6 m
+              </span>
+            </div>
+
+            <p className="text-xs text-[#1A1D1B] dark:text-[#ECEAE4] leading-relaxed">
+              River datum exceeded by 1.6 m. Embankment backflow threatens 1,240 households in Sector 4B low quadrants.
+            </p>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={onOpenEvacuationMap}
+                className="h-9 px-3 bg-[#1A1D1B] dark:bg-[#ECEAE4] text-[#FAF9F6] dark:text-[#0F1211] text-xs font-semibold rounded-[8px] flex-1 flex items-center justify-center gap-1.5 transition-calm"
+              >
+                <MapPin className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>Open evacuation corridor</span>
+              </button>
+
+              <button
+                onClick={onOpenAddShelter}
+                className="h-9 px-3 bg-[#FAF9F6] dark:bg-[#171B19] border border-[#D8D4CA] dark:border-[#2A302D] text-[#1A1D1B] dark:text-[#ECEAE4] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1 transition-calm"
+              >
+                <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span>Add refuge</span>
+              </button>
             </div>
           </div>
+        </section>
 
-          <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-xs">
-            <span className="text-slate-500 font-medium">Telemetry Span</span>
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
+        {/* Telemetry as Data Rows (label left, mono value right, small status dot) */}
+        <section aria-label="Sector telemetry data rows">
+          <div className="py-1 mb-1.5">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Live readings
+            </span>
+          </div>
+
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
+            {/* Reading 1: Rainfall */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#C1271D] dark:bg-[#D9382E] flex-shrink-0" />
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Precipitation rate</span>
+              </div>
+              <div className="flex items-baseline gap-1 font-mono">
+                <span className="text-base font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">62</span>
+                <span className="text-xs text-[#5C635E] dark:text-[#8A928D]">mm/h</span>
+                <span className="text-[11px] text-[#C1271D] dark:text-[#D9382E] ml-1.5">+14% 1h</span>
+              </div>
+            </div>
+
+            {/* Reading 2: Soil Moisture */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#D2620A] dark:bg-[#E87214] flex-shrink-0" />
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Capacitive soil saturation</span>
+              </div>
+              <div className="flex items-baseline gap-1 font-mono">
+                <span className="text-base font-semibold text-[#1A1D1B] dark:text-[#ECEAE4]">91</span>
+                <span className="text-xs text-[#5C635E] dark:text-[#8A928D]">%</span>
+                <span className="text-[11px] text-[#D2620A] dark:text-[#E87214] ml-1.5">Saturated</span>
+              </div>
+            </div>
+
+            {/* Reading 3: River Level */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#C1271D] dark:bg-[#D9382E] flex-shrink-0" />
+                <span className="text-[#5C635E] dark:text-[#8A928D]">River water depth</span>
+              </div>
+              <div className="flex items-baseline gap-1 font-mono">
+                <span className="text-base font-semibold text-[#C1271D] dark:text-[#D9382E]">4.8</span>
+                <span className="text-xs text-[#5C635E] dark:text-[#8A928D]">m</span>
+                <span className="text-[11px] text-[#5C635E] dark:text-[#8A928D] ml-1.5">(Danger 4.2m)</span>
+              </div>
+            </div>
+
+            {/* Reading 4: Sensor Node */}
+            <div className="p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#2E7D4F] dark:bg-[#389E65] flex-shrink-0" />
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Base station telemetry</span>
+              </div>
+              <div className="flex items-baseline gap-1.5 font-mono text-xs">
+                <span className="text-[#1A1D1B] dark:text-[#ECEAE4]">SN-014 Online</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">99.4% uptime</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Precipitation Telemetry Chart (Chart rules: no fills, 1.5px line, dashed threshold) */}
+        <section aria-label="Precipitation trend chart">
+          <div className="flex items-center justify-between py-1 mb-1.5">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Intensity profile (mm/h)
+            </span>
+            <div className="flex items-center gap-1 font-mono text-[11px]">
               {['7D', '30D', '90D'].map((span) => (
                 <button
                   key={span}
                   onClick={() => setTelemetrySpan(span)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  className={`px-1.5 py-0.5 rounded transition-calm ${
                     telemetrySpan === span 
-                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
-                      : 'text-slate-500 hover:text-slate-900'
+                      ? 'bg-[#1A1D1B] text-[#FAF9F6] dark:bg-[#ECEAE4] dark:text-[#0F1211] font-semibold' 
+                      : 'text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B]'
                   }`}
                 >
                   {span}
@@ -389,246 +212,235 @@ export default function RegionDetailScreen({
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Basin Sluice Overview Live Feed Card */}
-        <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="p-3.5 flex items-center justify-between">
-            <h3 className="text-[16px] font-bold text-slate-900 tracking-tight">
-              Basin Sluice Overview
-            </h3>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#dc2626]">
-              <Video className="w-3.5 h-3.5" />
-              <span>Live Feed</span>
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] p-3 bg-[#FAF9F6] dark:bg-[#171B19]">
+            <div className="flex justify-between items-baseline mb-2 text-xs font-mono">
+              <span className="text-[#5C635E] dark:text-[#8A928D]">Precipitation history</span>
+              <span className="text-[#1A1D1B] dark:text-[#ECEAE4]">Peak: {chartData.peak}</span>
+            </div>
+
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-28 overflow-visible select-none">
+              {/* Horizontal Grid lines */}
+              {[75, 50, 25, 0].map((val) => {
+                const yPos = svgHeight - (val / maxY) * (svgHeight - 20) - 10;
+                return (
+                  <g key={val}>
+                    <text x="0" y={yPos + 3} fill="#8A928D" fontSize="8" fontFamily="'IBM Plex Mono', monospace">
+                      {val}
+                    </text>
+                    <line x1="20" y1={yPos} x2={svgWidth} y2={yPos} stroke="currentColor" className="text-[#D8D4CA]/50 dark:text-[#2A302D]" strokeWidth="1" />
+                  </g>
+                );
+              })}
+
+              {/* Danger threshold line (dashed 1.5px in severity-critical) */}
+              <line
+                x1="20"
+                y1={dangerY}
+                x2={svgWidth}
+                y2={dangerY}
+                stroke="#C1271D"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+              />
+              <text 
+                x={svgWidth} 
+                y={dangerY - 3} 
+                fill="#C1271D" 
+                fontSize="8" 
+                fontFamily="'IBM Plex Mono', monospace"
+                textAnchor="end"
+              >
+                Danger threshold 50 mm/h
+              </text>
+
+              {/* Chart Line: 1.5px clean line, NO gradient or fill under line */}
+              <path
+                d={linePath}
+                fill="none"
+                stroke="#1A1D1B"
+                className="dark:stroke-[#ECEAE4]"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+
+              {/* Data points */}
+              {points.map((pt, i) => (
+                <g key={i}>
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r="3"
+                    className="fill-[#FAF9F6] dark:fill-[#171B19] stroke-[#1A1D1B] dark:stroke-[#ECEAE4]"
+                    strokeWidth="1.5"
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  />
+                  {hoveredIndex === i && (
+                    <g>
+                      <rect x={pt.x - 18} y={pt.y - 18} width="36" height="14" rx="2" className="fill-[#1A1D1B] dark:fill-[#ECEAE4]" />
+                      <text x={pt.x} y={pt.y - 8} fill="#FAF9F6" className="dark:fill-[#0F1211]" fontSize="8" fontFamily="'IBM Plex Mono', monospace" textAnchor="middle">
+                        {pt.val}
+                      </text>
+                    </g>
+                  )}
+                </g>
+              ))}
+            </svg>
+
+            {/* X-axis labels in mono */}
+            <div className="flex justify-between items-center px-4 mt-2 text-[10px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+              {chartData.labels.map((lbl, idx) => (
+                <span key={idx}>{lbl}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Basin Sluice CCTV Feed */}
+        <section aria-label="Hydraulic sluice camera feed">
+          <div className="flex items-center justify-between py-1 mb-1.5">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Hydraulic barrier CCTV
+            </span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#C1271D] dark:text-[#D9382E]">
+              <Video className="w-3.5 h-3.5" strokeWidth={1.5} />
+              <span>Live feed</span>
             </div>
           </div>
 
-          <div className="relative h-44 w-full bg-slate-900">
-            <img 
-              src="/sluice_gate.jpg" 
-              alt="Rampur Weir #3 Barrier" 
-              className="w-full h-full object-cover opacity-90"
-              onError={(e) => {
-                e.target.src = "https://images.unsplash.com/photo-1574974671999-24b7df56753f?auto=format&fit=crop&w=800&q=80";
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-            <div className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-white flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              CAM-02 WEIR GATE
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] overflow-hidden bg-[#1A1D1B]">
+            <div className="relative h-36 w-full">
+              <img 
+                src="/sluice_gate.jpg" 
+                alt="Weir barrier live video" 
+                className="w-full h-full object-cover opacity-80"
+                onError={(e) => {
+                  e.target.src = "https://images.unsplash.com/photo-1574974671999-24b7df56753f?auto=format&fit=crop&w=800&q=80";
+                }}
+              />
+              <div className="absolute top-2 left-2 bg-[#0F1211]/80 px-2 py-0.5 rounded text-[10px] font-mono text-[#ECEAE4]">
+                CAM-02 · WEIR GATE 03
+              </div>
             </div>
 
-            <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
+            <div className="p-3 bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] flex items-center justify-between">
               <div>
-                <h4 className="text-[13.5px] font-bold text-white tracking-tight leading-tight drop-shadow-sm">
-                  Rampur Weir #3 Barrier
-                </h4>
-                <p className="text-[11px] text-slate-200 font-medium drop-shadow-sm mt-0.5">
-                  Discharge: 1,240 m³/sec · Active
-                </p>
+                <span className="text-xs font-semibold text-[#1A1D1B] dark:text-[#ECEAE4] block">
+                  Rampur Weir 03 Barrier
+                </span>
+                <span className="text-[11px] font-mono text-[#5C635E] dark:text-[#8A928D]">
+                  Discharge: 1,240 m³/s · Aperture: 40%
+                </span>
               </div>
-              <button 
+              <button
                 onClick={onOpenSluiceOverride}
-                className="bg-[#c2410c] hover:bg-[#ea580c] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-md transition-all active:scale-95"
+                className="h-8 px-3 bg-[#C1271D] hover:bg-[#A81E15] text-white text-xs font-semibold rounded-[8px] transition-calm"
               >
                 Override
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Sensors List Section */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[16.5px] font-bold text-slate-900 tracking-tight">
-              Sensors
-            </h3>
-            <span className="text-xs text-slate-400 font-medium">
-              5 active monitoring nodes
+        {/* Compact Sensors Table */}
+        <section aria-label="Field sensor station inventory">
+          <div className="flex items-center justify-between py-1 mb-1.5">
+            <span className="text-[11px] font-mono tracking-[0.06em] uppercase text-[#5C635E] dark:text-[#8A928D]">
+              Field sensor inventory (5)
             </span>
           </div>
 
-          <div className="flex flex-col divide-y divide-slate-100">
+          <div className="border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] divide-y divide-[#D8D4CA] dark:divide-[#2A302D] overflow-hidden text-xs">
             {/* SN-014 */}
-            <div className="py-2.5 flex items-center justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#ea580c] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13.5px] font-bold text-slate-900">
-                    SN-014 · Rain Gauge
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500">
-                    Acoustic piezo array
-                  </p>
-                </div>
+            <div className="p-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold">SN-014</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Rain gauge (piezo array)</span>
               </div>
-              <span className="text-[13.5px] font-extrabold text-slate-900">
-                62 mm/hr
-              </span>
+              <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4]">62 mm/h</span>
             </div>
 
             {/* SN-015 */}
-            <div className="py-2.5 flex items-center justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#dc2626] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13.5px] font-bold text-slate-900">
-                    SN-015 · River Level Gauge
-                  </h4>
-                  <p className="text-[11.5px] text-[#dc2626] font-medium">
-                    Exceeded major danger level
-                  </p>
-                </div>
+            <div className="p-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[#C1271D] dark:text-[#D9382E] font-semibold">SN-015</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">River ultrasonic gauge</span>
               </div>
-              <span className="text-[13px] font-extrabold text-[#dc2626]">
-                4.8m <span className="font-normal text-[11px] text-red-500/80">(Warn: 4.2m)</span>
-              </span>
+              <span className="font-mono text-[#C1271D] dark:text-[#D9382E]">4.8 m (Critical)</span>
             </div>
 
             {/* SN-018 */}
-            <div className="py-2.5 flex items-center justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#ea580c] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13.5px] font-bold text-slate-900">
-                    SN-018 · Soil Moisture Sensor
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500">
-                    Root depth 40cm probe
-                  </p>
-                </div>
+            <div className="p-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold">SN-018</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Soil moisture 40cm</span>
               </div>
-              <span className="text-[13.5px] font-extrabold text-slate-900">
-                91% Saturation
-              </span>
+              <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4]">91%</span>
             </div>
 
-            {/* SN-022 */}
-            <div className="py-2.5 flex items-center justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-slate-400 mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13.5px] font-bold text-slate-900">
-                    SN-022 · Embankment Monitor
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500">
-                    Structural tiltmeter gauge
-                  </p>
-                </div>
+            {/* SN-022 MPU-6050 (Clickable to open 3D) */}
+            <div 
+              onClick={onOpenMPU6050}
+              className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-[#ECE9E2]/60 dark:hover:bg-[#2A302D]/40 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold">SN-022</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">MPU-6050 6-axis tiltmeter</span>
               </div>
-              <span className="text-[12.5px] font-semibold text-slate-400">
-                Offline - 2hr ago
-              </span>
+              <div className="flex items-center gap-1.5 font-mono text-[11px] text-[#1A1D1B] dark:text-[#ECEAE4]">
+                <span>50Hz live</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
+              </div>
             </div>
 
             {/* SN-029 */}
-            <div className="py-2.5 flex items-center justify-between">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#ea580c] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13.5px] font-bold text-slate-900">
-                    SN-029 · Sluice Gate Telem...
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500">
-                    Actuator load nominal
-                  </p>
-                </div>
+            <div className="p-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4] font-semibold">SN-029</span>
+                <span className="text-[#5C635E] dark:text-[#8A928D]">Sluice actuator 03</span>
               </div>
-              <span className="text-[13px] font-extrabold text-slate-900">
-                Online · Open 40%
-              </span>
+              <span className="font-mono text-[#1A1D1B] dark:text-[#ECEAE4]">Open 40%</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Recent Alerts Section */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[16.5px] font-bold text-slate-900 tracking-tight">
-              Recent Alerts
-            </h3>
-            <button className="text-xs font-bold text-[#a83210] hover:underline">
-              View Log
-            </button>
-          </div>
-
-          <div className="flex flex-col divide-y divide-slate-100">
-            {/* Alert 1 */}
-            <div className="py-2.5 flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#dc2626] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13px] font-bold text-slate-900">
-                    River level critical near Rampur bridge
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5">
-                    Automated evacuation dispatch dispatched to Unit 4
-                  </p>
-                </div>
-              </div>
-              <span className="text-[11.5px] text-slate-500 font-medium whitespace-nowrap">
-                4:12 PM
-              </span>
-            </div>
-
-            {/* Alert 2 */}
-            <div className="py-2.5 flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#b45309] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13px] font-bold text-slate-900">
-                    Sluice gate 3 opened to relieve pressure
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5">
-                    Hydraulic command executed remotely by District Eng.
-                  </p>
-                </div>
-              </div>
-              <span className="text-[11.5px] text-slate-500 font-medium whitespace-nowrap">
-                2:45 PM
-              </span>
-            </div>
-
-            {/* Alert 3 */}
-            <div className="py-2.5 flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-[#b45309] mt-1.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-[13px] font-bold text-slate-900">
-                    Rainfall exceeded 50 mm/hr threshold
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5">
-                    Continuous telemetry trigger from station SN-014
-                  </p>
-                </div>
-              </div>
-              <span className="text-[11.5px] text-slate-500 font-medium whitespace-nowrap">
-                11:30 AM
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button 
-            onClick={() => onShowToast ? onShowToast("Telemetry dataset exported (JSON/CSV · 4,820 readings)", "success") : null}
-            className="flex items-center justify-center gap-2 bg-[#e8f0fe] hover:bg-[#dbeafe] text-[#1e40af] font-bold text-xs py-3 rounded-xl transition-all shadow-sm active:scale-95"
+        {/* Analytical Risk Model Shortcut */}
+        {onOpenAIRiskEngine && (
+          <button
+            onClick={onOpenAIRiskEngine}
+            className="w-full h-11 px-3 border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] bg-[#FAF9F6] dark:bg-[#171B19] text-xs font-semibold flex items-center justify-between hover:bg-[#ECE9E2]/50 dark:hover:bg-[#2A302D]/50 transition-colors"
           >
-            <Download className="w-4 h-4" />
-            <span>Export Telemetry</span>
+            <span className="text-[#1A1D1B] dark:text-[#ECEAE4]">
+              View risk model assessment (CatBoost + LSTM)
+            </span>
+            <ChevronRight className="w-4 h-4 text-[#5C635E] dark:text-[#8A928D]" strokeWidth={1.5} />
           </button>
-
-          <button 
-            onClick={onIssueSiren}
-            className="flex items-center justify-center gap-2 bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md active:scale-95 animate-pulse"
-          >
-            <BellRing className="w-4 h-4" />
-            <span>Issue Siren</span>
-          </button>
-        </div>
+        )}
       </div>
+
+      {/* Sticky Bottom Thumb Zone Actions */}
+      <aside 
+        aria-label="Critical emergency actions"
+        className="fixed bottom-0 left-0 right-0 max-w-[400px] mx-auto p-3 bg-[#FAF9F6] dark:bg-[#171B19] border-t border-[#D8D4CA] dark:border-[#2A302D] z-20 flex items-center gap-2"
+      >
+        <button
+          onClick={() => onShowToast ? onShowToast("Telemetry exported: CSV dataset 4,820 records", "success") : null}
+          className="flex-1 h-11 px-3 border border-[#D8D4CA] dark:border-[#2A302D] text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 text-[#1A1D1B] dark:text-[#ECEAE4] hover:bg-[#ECE9E2] dark:hover:bg-[#2A302D] transition-calm"
+        >
+          <Download className="w-4 h-4" strokeWidth={1.5} />
+          <span>Export CSV</span>
+        </button>
+
+        <button
+          onClick={onIssueSiren}
+          className="flex-1 h-11 px-3 bg-[#C1271D] hover:bg-[#A81E15] text-white text-xs font-semibold rounded-[8px] flex items-center justify-center gap-1.5 transition-calm"
+        >
+          <BellRing className="w-4 h-4" strokeWidth={1.5} />
+          <span>Trigger siren</span>
+        </button>
+      </aside>
     </div>
   );
 }

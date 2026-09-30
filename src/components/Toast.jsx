@@ -1,37 +1,37 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export default function Toast({ message, type = 'info', onDismiss }) {
   if (!message) return null;
 
-  const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />,
-    warning: <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />,
-    info: <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
-  };
-
-  const bgStyles = {
-    success: 'bg-emerald-50 border-emerald-200 text-emerald-950',
-    warning: 'bg-amber-50 border-amber-200 text-amber-950',
-    info: 'bg-slate-900 border-slate-800 text-white'
+  const dotColors = {
+    success: 'bg-[#2E7D4F] dark:bg-[#389E65]',
+    warning: 'bg-[#D2620A] dark:bg-[#E87214]',
+    critical: 'bg-[#C1271D] dark:bg-[#D9382E]',
+    info: 'bg-[#1A1D1B] dark:bg-[#ECEAE4]',
   };
 
   return (
-    <div className="fixed bottom-14 left-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
-      <div className={`rounded-2xl p-3.5 shadow-xl border flex items-center justify-between gap-2.5 ${bgStyles[type] || bgStyles.info}`}>
+    <aside 
+      role="status" 
+      aria-live="polite"
+      className="fixed bottom-16 left-4 right-4 max-w-[368px] mx-auto z-50 transition-calm"
+    >
+      <div className="bg-[#FAF9F6] dark:bg-[#171B19] border border-[#D8D4CA] dark:border-[#2A302D] rounded-[8px] p-3 shadow-modal flex items-center justify-between gap-3 text-[#1A1D1B] dark:text-[#ECEAE4]">
         <div className="flex items-center gap-2.5 min-w-0">
-          {icons[type] || icons.info}
-          <p className="text-[12.5px] font-medium leading-snug truncate">
+          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColors[type] || dotColors.info}`} />
+          <p className="text-xs font-mono truncate leading-normal">
             {message}
           </p>
         </div>
         <button
           onClick={onDismiss}
-          className="p-1 rounded-lg hover:bg-black/10 text-current opacity-60 hover:opacity-100 transition-opacity flex-shrink-0"
+          className="p-1 rounded text-[#5C635E] dark:text-[#8A928D] hover:text-[#1A1D1B] dark:hover:text-[#ECEAE4] transition-colors flex-shrink-0"
+          title="Dismiss notification"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" strokeWidth={1.5} />
         </button>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -3,6 +3,48 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg: #F3F1EC;
+    --surface: #FAF9F6;
+    --surface-sunken: #ECE9E2;
+    --line: #D8D4CA;
+    --ink: #1A1D1B;
+    --ink-muted: #5C635E;
+    
+    --sev-safe: #2E7D4F;
+    --sev-safe-tint: rgba(46, 125, 79, 0.10);
+    
+    --sev-advisory: #A87A00;
+    --sev-advisory-tint: rgba(168, 122, 0, 0.10);
+    
+    --sev-warning: #D2620A;
+    --sev-warning-tint: rgba(210, 98, 10, 0.10);
+    
+    --sev-critical: #C1271D;
+    --sev-critical-tint: rgba(193, 39, 29, 0.10);
+  }
+
+  .dark {
+    --bg: #0F1211;
+    --surface: #171B19;
+    --surface-sunken: #121514;
+    --line: #2A302D;
+    --ink: #ECEAE4;
+    --ink-muted: #8A928D;
+    
+    --sev-safe: #389E65;
+    --sev-safe-tint: rgba(56, 158, 101, 0.15);
+    
+    --sev-advisory: #C79200;
+    --sev-advisory-tint: rgba(199, 146, 0, 0.15);
+    
+    --sev-warning: #E87214;
+    --sev-warning-tint: rgba(232, 114, 20, 0.15);
+    
+    --sev-critical: #D9382E;
+    --sev-critical-tint: rgba(217, 56, 46, 0.15);
+  }
+
   * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
@@ -11,10 +53,19 @@
   html, body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #0c111d;
-    color: #1e293b;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* All numbers in monospace with tabular numerals to eliminate jitter */
+  .font-mono, [data-mono="true"] {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
   }
 
   /* Custom subtle scrollbar */
@@ -27,50 +78,33 @@
   }
   
   .thin-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
+    height: 3px;
   }
   .thin-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
   .thin-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.3);
-    border-radius: 9999px;
+    background: var(--line);
+    border-radius: 999px;
   }
 }
 
-/* Pulse animation for alert status dots */
-@keyframes pulse-dot {
+/* Calm 2s slow status dot pulse — no glowing halos or colored shadows */
+@keyframes status-pulse {
   0%, 100% {
-    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.3);
-    opacity: 0.75;
+    opacity: 0.35;
   }
 }
 
-.animate-pulse-dot {
-  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-slow-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
 }
 
-/* Water wave & radar animation for maps/live feeds */
-@keyframes radar-ripple {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-}
-
-.animate-radar {
-  animation: radar-ripple 2.2s cubic-bezier(0.1, 0.2, 0.3, 1) infinite;
-}
-
-/* Realistic phone frame glare */
-.phone-glare {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(255, 255, 255, 0) 100%);
+/* Standard state transitions (150ms ease-out) */
+.transition-calm {
+  transition: all 150ms cubic-bezier(0, 0, 0.2, 1);
 }
