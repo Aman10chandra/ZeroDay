@@ -16,7 +16,7 @@ import {
   INITIAL_AUDIT_LOGS 
 } from './mockData';
 
-const DB_NAME = 'ZeroDayOpsDB_v2';
+const DB_NAME = 'ZeroDayOpsDB_v3';
 const DB_VERSION = 1;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;

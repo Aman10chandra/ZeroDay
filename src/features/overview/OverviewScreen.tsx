@@ -20,6 +20,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { WardRegion } from '../../types';
+import clsx from 'clsx';
 
 export const OverviewScreen: React.FC = () => {
   const { 
@@ -176,9 +177,9 @@ export const OverviewScreen: React.FC = () => {
                   <h2 className="font-sans font-semibold text-lg text-zd-text truncate leading-tight">
                     {selectedWard.name}
                   </h2>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <SeverityDot level={selectedWard.riskLevel} />
-                    <span className="font-sans text-xs text-zd-muted capitalize">
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <SeverityDot level={selectedWard.riskLevel} pulse={selectedWard.riskLevel === 'critical'} />
+                    <span className="font-sans text-xs font-semibold uppercase tracking-wider text-zd-muted">
                       {selectedWard.riskLevel} severity
                     </span>
                     <span className="text-zd-dim">·</span>
@@ -352,19 +353,30 @@ export const OverviewScreen: React.FC = () => {
                       isSelected ? 'bg-zd-raised' : 'hover:bg-zd-hover'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 truncate min-w-0 pr-2">
-                      <SeverityDot level={ward.riskLevel} />
+                    <div className="flex items-center gap-3 truncate min-w-0 pr-3">
+                      <SeverityDot level={ward.riskLevel} pulse={isCritical} />
                       <div className="truncate">
-                        <span className="font-sans text-xs font-medium text-zd-text block truncate">
-                          {ward.name}
-                        </span>
-                        <span className="font-mono text-[10px] text-zd-dim">
-                          Score {ward.riskScore}/100
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="font-sans text-xs font-semibold text-zd-text truncate">
+                            {ward.name}
+                          </span>
+                          <span className={clsx(
+                            "text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-bold tracking-wider shrink-0",
+                            ward.riskLevel === 'critical' ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30" :
+                            ward.riskLevel === 'warning' ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30" :
+                            ward.riskLevel === 'advisory' ? "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30" :
+                            "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                          )}>
+                            {ward.riskLevel}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] text-zd-dim block mt-0.5">
+                          Score {ward.riskScore}/100 · {ward.householdsAtRisk.toLocaleString()} households
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 font-mono text-xs text-zd-muted shrink-0">
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-zd-muted shrink-0 bg-zd-base px-2 py-1 rounded border border-zd-border">
                       <span>{ward.rainfall1h} mm/h</span>
                       {isCritical || isWarning ? (
                         <ArrowUpRight className="w-3.5 h-3.5 text-sev-critical" />

@@ -29,8 +29,8 @@ export const INITIAL_WARDS: WardRegion[] = [
     datumBreachM: 1.6,
     householdsAtRisk: 1240,
     population: 4890,
-    lat: 29.7468,
-    lng: 78.5292,
+    lat: 29.7490,
+    lng: 78.5220,
     polygon: [
       [29.755, 78.515],
       [29.762, 78.535],
@@ -90,8 +90,8 @@ export const INITIAL_WARDS: WardRegion[] = [
     datumBreachM: -1.0,
     householdsAtRisk: 340,
     population: 8900,
-    lat: 29.7420,
-    lng: 78.5140,
+    lat: 29.7390,
+    lng: 78.5440,
     polygon: [
       [29.748, 78.502],
       [29.754, 78.520],

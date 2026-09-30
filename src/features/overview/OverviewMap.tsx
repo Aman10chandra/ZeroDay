@@ -36,6 +36,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
   const { isOpsMode, setOpsMode } = useStore();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [useRealMap, setUseRealMap] = useState(true);
@@ -281,9 +282,11 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
       });
 
       mapRef.current = map;
+      setMapInstance(map);
 
       return () => {
         map.remove();
+        setMapInstance(null);
       };
     } catch (err) {
       console.warn('MapLibre GL failed to initialize (falling back to SVG):', err);
@@ -364,14 +367,13 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
 
   // Sync Markers for Shelters, Sensors, and Ward Labels on MapLibre
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!mapInstance) return;
 
     // Clear previous markers
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    // 1. Ward Center Tactical Name Badges
+    // 1. Ward Center Tactical Name Badges (Elevated with anchor pin stem to never collide with ground sensor dots)
     if (layers.wards) {
       wards.forEach(ward => {
         const isSelected = ward.id === selectedWardId;
@@ -379,69 +381,99 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         const isWarning = ward.riskLevel === 'warning';
         const color = isCritical ? '#E5484D' : isWarning ? '#E8843A' : ward.riskLevel === 'advisory' ? '#D9B44A' : '#4CB782';
 
-        const cardBg = isOpsMode ? 'rgba(10, 15, 19, 0.90)' : 'rgba(255, 255, 255, 0.95)';
+        const cardBg = isOpsMode ? 'rgba(10, 15, 19, 0.94)' : 'rgba(255, 255, 255, 0.96)';
         const cardBorder = isSelected 
           ? (isOpsMode ? '#5CC8BE' : '#0D9488') 
           : isCritical 
             ? '#E5484D' 
-            : (isOpsMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(18, 24, 29, 0.15)');
+            : (isOpsMode ? 'rgba(255, 255, 255, 0.22)' : 'rgba(18, 24, 29, 0.18)');
         const cardTextColor = isOpsMode ? '#FFFFFF' : '#111827';
-        const cardShadow = isOpsMode ? '0 4px 14px rgba(0,0,0,0.6)' : '0 4px 14px rgba(0,0,0,0.12)';
+        const cardShadow = isOpsMode ? '0 4px 16px rgba(0,0,0,0.7)' : '0 4px 14px rgba(0,0,0,0.15)';
+
+        const displayName = ward.name
+          .replace(' Lowlands', '')
+          .replace(' Gully', '')
+          .replace(' Roadway', '')
+          .replace(' Upper Foothills', ' Foothills');
+
+        const xOffset = ward.id === 'ward-rampur-4b' ? -8 : ward.id === 'ward-kotdwar-main' ? 8 : 0;
 
         const el = document.createElement('div');
-        el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-110';
+        el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-110 z-20';
         el.innerHTML = `
           <div style="
             background: ${cardBg};
-            border: 1px solid ${cardBorder};
+            border: 1.5px solid ${cardBorder};
             box-shadow: ${cardShadow};
             padding: 4px 10px;
-            border-radius: 6px;
-            backdrop-filter: blur(8px);
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             gap: 6px;
             white-space: nowrap;
           ">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${color}; ${isCritical ? 'box-shadow: 0 0 8px #E5484D;' : ''}"></span>
-            <span style="font-size: 11px; font-weight: 600; color: ${cardTextColor}; font-family: monospace; letter-spacing: -0.01em;">${ward.name}</span>
-            <span style="font-size: 10px; color: ${color}; text-transform: uppercase; font-weight: 700; margin-left: 2px;">${ward.riskScore}</span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${color}; flex-shrink: 0; ${isCritical ? 'box-shadow: 0 0 8px #E5484D;' : ''}"></span>
+            <span style="font-size: 11px; font-weight: 700; color: ${cardTextColor}; letter-spacing: -0.01em;">${displayName}</span>
+            <span style="font-size: 10px; font-family: monospace; font-weight: 700; padding: 1px 5px; border-radius: 9999px; background: ${color}22; color: ${color};">${ward.riskScore}</span>
           </div>
+          <div style="width: 1.5px; height: 8px; background-color: ${color}; opacity: 0.85;"></div>
+          <div style="width: 5px; height: 5px; border-radius: 50%; background-color: ${color}; margin-top: -2px; border: 1px solid ${isOpsMode ? '#0A0F13' : '#FFFFFF'};"></div>
         `;
         el.onclick = (e) => {
           e.stopPropagation();
           onSelectWard(ward.id);
         };
 
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [xOffset, -3] })
           .setLngLat([ward.lng, ward.lat])
-          .addTo(map);
+          .addTo(mapInstance);
 
         markersRef.current.push(marker);
       });
     }
 
-    // 2. Shelters Markers
+    // 2. Shelters Markers (Distinctive Shield Badges)
     if (layers.shelters) {
       shelters.forEach(shelter => {
         const el = document.createElement('div');
-        el.className = 'w-6 h-6 rounded-full bg-sev-safe/25 border border-sev-safe flex items-center justify-center cursor-pointer shadow-sm hover:scale-125 transition-transform';
-        el.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#4CB782]"></div>';
-        el.title = `${shelter.name} (${shelter.capacity} capacity)`;
+        el.className = 'group relative flex items-center justify-center cursor-pointer transition-transform hover:scale-125 z-10';
+        el.innerHTML = `
+          <div style="
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: ${isOpsMode ? 'rgba(76, 183, 130, 0.25)' : 'rgba(76, 183, 130, 0.35)'};
+            border: 1.5px solid #4CB782;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          ">
+            <span style="font-size: 10px; line-height: 1;">🛡️</span>
+          </div>
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none absolute bottom-full mb-1.5 px-2 py-0.5 rounded text-[10px] font-sans whitespace-nowrap shadow-sm z-30" style="
+            background: ${isOpsMode ? '#12181D' : '#FFFFFF'};
+            color: ${isOpsMode ? '#FFFFFF' : '#111827'};
+            border: 1px solid ${isOpsMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'};
+          ">
+            ${shelter.name} (${shelter.capacity} cap)
+          </div>
+        `;
         el.onclick = (e) => {
           e.stopPropagation();
           onSelectWard(shelter.wardId);
         };
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
           .setLngLat([shelter.lng, shelter.lat])
-          .addTo(map);
+          .addTo(mapInstance);
 
         markersRef.current.push(marker);
       });
     }
 
-    // 3. Sensors Markers
+    // 3. Sensors Markers (Minimal glowing telemetry nodes on ground, tooltips on hover)
     if (layers.sensors) {
       sensors.forEach(sensor => {
         const isCritical = sensor.healthStatus === 'critical';
@@ -450,19 +482,44 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         const innerBorder = isOpsMode ? '#0A0F13' : '#FFFFFF';
 
         const el = document.createElement('div');
-        el.className = 'w-4 h-4 rounded-full flex items-center justify-center cursor-pointer hover:scale-125 transition-transform';
-        el.style.backgroundColor = `${sensorColor}33`;
-        el.innerHTML = `<div style="width: 7px; height: 7px; border-radius: 50%; background-color: ${sensorColor}; border: 1px solid ${innerBorder};"></div>`;
-        el.title = `Sensor ${sensor.code} (${sensor.type})`;
+        el.className = 'group relative flex items-center justify-center cursor-pointer transition-transform hover:scale-125 z-10';
+        el.innerHTML = `
+          <div style="
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: ${sensorColor}33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background-color: ${sensorColor};
+              border: 1px solid ${innerBorder};
+              ${isCritical ? 'box-shadow: 0 0 6px #E5484D;' : ''}
+            "></div>
+          </div>
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none absolute bottom-full mb-1 px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-sm z-30" style="
+            background: ${isOpsMode ? '#12181D' : '#FFFFFF'};
+            color: ${isOpsMode ? '#FFFFFF' : '#111827'};
+            border: 1px solid ${isOpsMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'};
+          ">
+            ${sensor.code} (${sensor.type})
+          </div>
+        `;
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
           .setLngLat([sensor.lng, sensor.lat])
-          .addTo(map);
+          .addTo(mapInstance);
 
         markersRef.current.push(marker);
       });
     }
-  }, [wards, shelters, sensors, layers.wards, layers.shelters, layers.sensors, selectedWardId, isOpsMode, mapLoaded]);
+  }, [wards, shelters, sensors, layers.wards, layers.shelters, layers.sensors, selectedWardId, isOpsMode, mapInstance]);
+
 
   // Fly to selected ward on map
   useEffect(() => {
@@ -590,21 +647,44 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
                   stroke={isHovered || isSelected ? (isOpsMode ? '#5CC8BE' : '#0D9488') : ward.riskLevel === 'critical' ? '#E5484D' : '#4CB782'}
                   strokeWidth={isHovered || isSelected ? 2 : 1.5}
                 />
-                <text
-                  x={center.x}
-                  y={center.y}
-                  textAnchor="middle"
-                  fill={isOpsMode ? "#EAF0F3" : "#12181D"}
-                  fontSize="12"
-                  fontWeight="600"
-                  style={{ 
-                    paintOrder: 'stroke fill', 
-                    stroke: isOpsMode ? '#0A0F13' : '#FFFFFF', 
-                    strokeWidth: '3px' 
-                  }}
-                >
-                  {ward.name}
-                </text>
+                <g transform={`translate(${center.x}, ${center.y})`}>
+                  <rect
+                    x="-65"
+                    y="-12"
+                    width="130"
+                    height="24"
+                    rx="12"
+                    fill={isOpsMode ? "rgba(10, 15, 19, 0.92)" : "rgba(255, 255, 255, 0.94)"}
+                    stroke={ward.riskLevel === 'critical' ? '#E5484D' : '#4CB782'}
+                    strokeWidth="1.2"
+                  />
+                  <circle
+                    cx="-52"
+                    cy="0"
+                    r="3.5"
+                    fill={ward.riskLevel === 'critical' ? '#E5484D' : ward.riskLevel === 'warning' ? '#E8843A' : '#4CB782'}
+                  />
+                  <text
+                    x="-42"
+                    y="4"
+                    fill={isOpsMode ? "#FFFFFF" : "#111827"}
+                    fontSize="10"
+                    fontWeight="700"
+                    fontFamily="system-ui, -apple-system, sans-serif"
+                  >
+                    {ward.name.length > 15 ? ward.name.slice(0, 13) + '…' : ward.name}
+                  </text>
+                  <text
+                    x="45"
+                    y="4"
+                    fill={ward.riskLevel === 'critical' ? '#E5484D' : '#4CB782'}
+                    fontSize="9"
+                    fontWeight="700"
+                    fontFamily="monospace"
+                  >
+                    {ward.riskScore}
+                  </text>
+                </g>
               </g>
             );
           })}

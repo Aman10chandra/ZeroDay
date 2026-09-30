@@ -7,6 +7,7 @@ interface SeverityDotProps {
   level: SeverityLevel;
   label?: string;
   showIcon?: boolean;
+  showLabel?: boolean;
   className?: string;
   pulse?: boolean;
 }
@@ -14,7 +15,8 @@ interface SeverityDotProps {
 export const SeverityDot: React.FC<SeverityDotProps> = ({
   level,
   label,
-  showIcon = true,
+  showIcon = false,
+  showLabel = false,
   className,
   pulse = false,
 }) => {
@@ -47,16 +49,17 @@ export const SeverityDot: React.FC<SeverityDotProps> = ({
 
   const cfg = configs[level] || configs.safe;
   const Icon = cfg.icon;
+  const displayLabel = showLabel || Boolean(label);
 
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1.5 text-xs font-sans font-medium select-none",
+        "inline-flex items-center gap-1.5 select-none shrink-0",
         cfg.textColor,
         className
       )}
     >
-      <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
+      <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0">
         {(pulse || level === 'critical') && (
           <span 
             style={{ backgroundColor: cfg.color }}
@@ -65,12 +68,13 @@ export const SeverityDot: React.FC<SeverityDotProps> = ({
         )}
         <span 
           style={{ backgroundColor: cfg.color }}
-          className="relative inline-flex rounded-full h-1.5 w-1.5" 
+          className="relative inline-flex rounded-full h-2 w-2 shadow-xs" 
         />
       </span>
 
       {showIcon && <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
-      <span>{cfg.text}</span>
+      {displayLabel && <span className="text-xs font-sans font-medium">{cfg.text}</span>}
     </span>
   );
 };
+
