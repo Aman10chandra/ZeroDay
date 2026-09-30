@@ -29,10 +29,10 @@ export default function PhoneMockup({
     <div className={`min-h-screen w-full flex flex-col font-sans transition-colors duration-150 ${
       isOpsMode ? 'bg-[#0F1211] text-[#ECEAE4]' : 'bg-[#F3F1EC] text-[#1A1D1B]'
     }`}>
-      {/* Presenter Toolbar — Sits OUTSIDE the app viewport, muted monospace */}
+      {/* Presenter Toolbar — Sits OUTSIDE the app viewport on desktop, hidden on mobile */}
       <aside 
         aria-label="Presenter controls"
-        className={`w-full border-b px-4 py-2 flex flex-wrap items-center justify-between text-xs font-mono transition-colors duration-150 ${
+        className={`hidden sm:flex w-full border-b px-4 py-2 flex-wrap items-center justify-between text-xs font-mono transition-colors duration-150 ${
           isOpsMode 
             ? 'bg-[#171B19] border-[#2A302D] text-[#8A928D]' 
             : 'bg-[#FAF9F6] border-[#D8D4CA] text-[#5C635E]'
@@ -125,7 +125,7 @@ export default function PhoneMockup({
       {/* Main Content Area: Centered 400px column on desktop, edge-to-edge on mobile */}
       <main className="flex-1 flex justify-center items-start sm:py-6 sm:px-4">
         <div 
-          className={`w-full min-h-[calc(100vh-45px)] sm:min-h-0 sm:h-[844px] sm:max-w-[400px] flex flex-col relative transition-colors duration-150 sm:border rounded sm:rounded-[8px] overflow-hidden ${
+          className={`w-full min-h-screen sm:min-h-0 sm:h-[844px] sm:max-w-[400px] flex flex-col relative transition-colors duration-150 sm:border rounded sm:rounded-[8px] overflow-hidden ${
             isOpsMode 
               ? 'bg-[#171B19] border-[#2A302D] text-[#ECEAE4]' 
               : 'bg-[#FAF9F6] border-[#D8D4CA] text-[#1A1D1B]'
