@@ -212,7 +212,7 @@ export const CommunityReportsScreen: React.FC = () => {
                   </p>
 
                   <span className="font-mono text-[10px] text-zd-dim block mt-1">
-                    {rep.timestamp.slice(11, 16)} IST
+                    {/^\d{4}-\d{2}-\d{2}T/.test(rep.timestamp) ? `${rep.timestamp.slice(11, 16)} IST` : rep.timestamp}
                   </span>
                 </div>
               </div>

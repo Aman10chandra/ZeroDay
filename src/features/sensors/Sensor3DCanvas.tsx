@@ -38,23 +38,23 @@ const IndustrialSensorHousing: React.FC<SensorModelProps> = ({ rotation, filterA
       {/* Sensor Main Enclosure: Anodized Dark Slate IP68 Enclosure */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[2.2, 0.6, 1.6]} />
-        <meshStandardMaterial color="#1B232A" metalness={0.8} roughness={0.3} />
+        <meshStandardMaterial color="#3A4A58" metalness={0.7} roughness={0.35} />
       </mesh>
 
       {/* Top Lid / PCB Cover Plate */}
       <mesh position={[0, 0.32, 0]}>
         <boxGeometry args={[2.0, 0.05, 1.4]} />
-        <meshStandardMaterial color="#2E3944" metalness={0.6} roughness={0.4} />
+        <meshStandardMaterial color="#4A5B6A" metalness={0.6} roughness={0.4} />
       </mesh>
 
       {/* Industrial Mounting Flanges (Left & Right) */}
       <mesh position={[-1.25, -0.15, 0]}>
         <boxGeometry args={[0.3, 0.15, 1.2]} />
-        <meshStandardMaterial color="#0F1418" metalness={0.9} roughness={0.2} />
+        <meshStandardMaterial color="#2A3540" metalness={0.9} roughness={0.2} />
       </mesh>
       <mesh position={[1.25, -0.15, 0]}>
         <boxGeometry args={[0.3, 0.15, 1.2]} />
-        <meshStandardMaterial color="#0F1418" metalness={0.9} roughness={0.2} />
+        <meshStandardMaterial color="#2A3540" metalness={0.9} roughness={0.2} />
       </mesh>
 
       {/* Cable Gland */}
@@ -128,7 +128,7 @@ const IsometricSensorFallback: React.FC<SensorModelProps> = ({ rotation, isVibra
         }}
       >
         {/* Metal Case */}
-        <div className="w-48 h-28 bg-gradient-to-br from-[#242E36] to-[#12181E] border border-[rgba(255,255,255,0.15)] rounded-[6px] shadow-2xl relative p-4 flex flex-col justify-between">
+        <div className="w-48 h-28 bg-gradient-to-br from-[#3A4A58] to-[#242E36] border border-[rgba(255,255,255,0.25)] rounded-[6px] shadow-2xl relative p-4 flex flex-col justify-between">
           {/* PCB Top Edge */}
           <div className="w-full h-1 bg-[#2C6E49] rounded-sm opacity-80" />
 
@@ -215,15 +215,17 @@ export const Sensor3DCanvas: React.FC<{
   }
 
   return (
-    <div className="w-full h-full min-h-[360px] relative bg-[#070B0E] rounded border border-zd-border overflow-hidden select-none">
+    <div className="w-full h-full min-h-[360px] relative bg-gradient-to-b from-[#0C1218] to-[#070B0E] rounded-panel border border-zd-border overflow-hidden select-none">
       <WebGLBoundary fallback={fallback}>
         <Canvas
           camera={{ position: [3.5, 2.5, 4.0], fov: 45 }}
           gl={{ antialias: true }}
         >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[5, 8, 5]} intensity={1.2} />
-          <pointLight position={[-4, 2, -4]} intensity={0.5} />
+          <ambientLight intensity={1.0} />
+          <directionalLight position={[5, 8, 5]} intensity={1.8} castShadow />
+          <directionalLight position={[-3, 4, -2]} intensity={0.8} />
+          <pointLight position={[-4, 2, -4]} intensity={0.7} />
+          <pointLight position={[4, 1, 3]} intensity={0.5} color="#5CC8BE" />
 
           <IndustrialSensorHousing
             rotation={rotation}

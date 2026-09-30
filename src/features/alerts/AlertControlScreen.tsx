@@ -247,7 +247,7 @@ export const AlertControlScreen: React.FC = () => {
                   className="hover:bg-zd-hover cursor-pointer transition-colors"
                 >
                   <td className="py-3 px-4 text-zd-dim">
-                    {alert.timestamp.includes('T') ? `${alert.timestamp.slice(11, 16)} IST` : alert.timestamp}
+                    {/^\d{4}-\d{2}-\d{2}T/.test(alert.timestamp) ? `${alert.timestamp.slice(11, 16)} IST` : alert.timestamp}
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-1.5 capitalize font-sans">

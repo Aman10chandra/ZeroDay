@@ -180,7 +180,7 @@ export const MPU6050TelemetryScreen: React.FC = () => {
       </div>
 
       {/* Large Full-Width Dark Stage with Floating Overlays */}
-      <div className="relative flex-1 w-full my-4 rounded-panel overflow-hidden bg-[#070B0E] border border-zd-border">
+      <div className="relative flex-1 w-full my-4 rounded-panel overflow-hidden bg-gradient-to-b from-[#0E151C] to-[#080D12] border border-zd-border">
         {/* 3D Canvas */}
         <div className="absolute inset-0">
           <Sensor3DCanvas
