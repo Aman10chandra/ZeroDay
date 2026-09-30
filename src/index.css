@@ -4,107 +4,103 @@
 
 @layer base {
   :root {
-    --bg: #F3F1EC;
-    --surface: #FAF9F6;
-    --surface-sunken: #ECE9E2;
-    --line: #D8D4CA;
-    --ink: #1A1D1B;
-    --ink-muted: #5C635E;
-    
-    --sev-safe: #2E7D4F;
-    --sev-safe-tint: rgba(46, 125, 79, 0.10);
-    
-    --sev-advisory: #A87A00;
-    --sev-advisory-tint: rgba(168, 122, 0, 0.10);
-    
-    --sev-warning: #D2620A;
-    --sev-warning-tint: rgba(210, 98, 10, 0.10);
-    
-    --sev-critical: #C1271D;
-    --sev-critical-tint: rgba(193, 39, 29, 0.10);
+    --bg-base: #F6F5F1;
+    --bg-surface: #ECE9E2;
+    --bg-raised: #E2DED6;
+    --bg-hover: #DAD5CB;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-focus: rgba(0, 0, 0, 0.22);
+    --text-ink: #12181D;
+    --text-muted: #58656E;
+    --text-dim: #8B97A0;
+    --accent: #3DAFA5;
+    --accent-dim: rgba(61, 175, 165, 0.12);
   }
 
   .dark {
-    --bg: #0F1211;
-    --surface: #171B19;
-    --surface-sunken: #121514;
-    --line: #2A302D;
-    --ink: #ECEAE4;
-    --ink-muted: #8A928D;
-    
-    --sev-safe: #389E65;
-    --sev-safe-tint: rgba(56, 158, 101, 0.15);
-    
-    --sev-advisory: #C79200;
-    --sev-advisory-tint: rgba(199, 146, 0, 0.15);
-    
-    --sev-warning: #E87214;
-    --sev-warning-tint: rgba(232, 114, 20, 0.15);
-    
-    --sev-critical: #D9382E;
-    --sev-critical-tint: rgba(217, 56, 46, 0.15);
+    --bg-base: #0A0F13;
+    --bg-surface: #10161B;
+    --bg-raised: #161E25;
+    --bg-hover: #1D2730;
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-focus: rgba(255, 255, 255, 0.20);
+    --text-ink: #EAF0F3;
+    --text-muted: #93A1AC;
+    --text-dim: #5E6C77;
+    --accent: #5CC8BE;
+    --accent-dim: rgba(92, 200, 190, 0.14);
   }
 
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--bg);
-    color: var(--ink);
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-ink);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* All numbers in monospace with tabular numerals to eliminate jitter */
-  .font-mono, [data-mono="true"] {
-    font-family: 'IBM Plex Mono', monospace;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
+  /* Monospace numbers must always use tabular figures */
+  code, kbd, samp, pre, .font-mono {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+}
+
+@layer utilities {
+  .hairline-b {
+    border-bottom: 1px solid var(--border-color);
+  }
+  .hairline-t {
+    border-top: 1px solid var(--border-color);
+  }
+  .hairline-r {
+    border-right: 1px solid var(--border-color);
+  }
+  .hairline-l {
+    border-left: 1px solid var(--border-color);
+  }
+  .hairline {
+    border: 1px solid var(--border-color);
   }
 
-  /* Custom subtle scrollbar */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  /* Custom clean control room scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
   }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .thin-scrollbar::-webkit-scrollbar {
-    width: 3px;
-    height: 3px;
-  }
-  .thin-scrollbar::-webkit-scrollbar-track {
+  .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-  .thin-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--line);
-    border-radius: 999px;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(147, 161, 172, 0.22);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 161, 172, 0.40);
   }
 }
 
-/* Calm 2s slow status dot pulse — no glowing halos or colored shadows */
-@keyframes status-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
+@keyframes ken-burns {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.08) translate(-1%, -1.5%); }
+  100% { transform: scale(1) translate(0, 0); }
 }
 
-.animate-slow-pulse {
-  animation: status-pulse 2s ease-in-out infinite;
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.92); }
 }
 
-/* Standard state transitions (150ms ease-out) */
-.transition-calm {
-  transition: all 150ms cubic-bezier(0, 0, 0.2, 1);
+@keyframes incident-strobe {
+  0%, 100% { background-color: rgba(229, 72, 77, 0.08); }
+  50% { background-color: rgba(229, 72, 77, 0.24); }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 45s ease-in-out infinite;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-incident-strobe {
+  animation: incident-strobe 1s ease-in-out infinite;
 }
