@@ -70,7 +70,7 @@ export const AlertControlScreen: React.FC = () => {
     if (channelMesh) channels.push('ble_mesh');
 
     await createAlert({
-      title: `${severity.toUpperCase()}: ${targetWard.name}`,
+      title: `${severity.charAt(0).toUpperCase() + severity.slice(1)} alert: ${targetWard.name}`,
       titleHi: `${severity === 'critical' ? 'गंभीर चेतावनी' : 'चेतावनी'}: ${targetWard.name}`,
       body: textEn,
       bodyHi: textHi,
@@ -258,7 +258,7 @@ export const AlertControlScreen: React.FC = () => {
                   <td className="py-3 px-4 font-sans text-zd-text truncate max-w-xs">
                     {alert.body}
                   </td>
-                  <td className="py-3 px-3 text-zd-muted uppercase text-[11px]">
+                  <td className="py-3 px-3 text-zd-muted text-xs font-mono">
                     {alert.channels.join(', ')}
                   </td>
                   <td className="py-3 px-4 text-right">

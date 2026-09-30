@@ -7,14 +7,16 @@ import {
   WardRegion 
 } from '../types';
 import { 
-  INITIAL_WARDS, 
-  INITIAL_SHELTERS, 
-  INITIAL_ALERTS, 
+  SEED_WARDS, 
+  SEED_SHELTERS, 
+  SEED_ALERTS 
+} from './seed';
+import { 
   INITIAL_REPORTS, 
   INITIAL_AUDIT_LOGS 
 } from './mockData';
 
-const DB_NAME = 'ZeroDayOpsDB';
+const DB_NAME = 'ZeroDayOpsDB_v2';
 const DB_VERSION = 1;
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
@@ -55,7 +57,7 @@ export async function initStorage() {
     const countWards = await db.count('wards');
     if (countWards === 0) {
       const tx = db.transaction('wards', 'readwrite');
-      for (const w of INITIAL_WARDS) {
+      for (const w of SEED_WARDS) {
         await tx.store.put(w);
       }
       await tx.done;
@@ -65,7 +67,7 @@ export async function initStorage() {
     const countShelters = await db.count('shelters');
     if (countShelters === 0) {
       const tx = db.transaction('shelters', 'readwrite');
-      for (const s of INITIAL_SHELTERS) {
+      for (const s of SEED_SHELTERS) {
         await tx.store.put(s);
       }
       await tx.done;
@@ -75,7 +77,7 @@ export async function initStorage() {
     const countAlerts = await db.count('alerts');
     if (countAlerts === 0) {
       const tx = db.transaction('alerts', 'readwrite');
-      for (const a of INITIAL_ALERTS) {
+      for (const a of SEED_ALERTS) {
         await tx.store.put(a);
       }
       await tx.done;
@@ -110,9 +112,9 @@ export async function getStoredShelters(): Promise<ShelterPoint[]> {
   try {
     const db = await getDB();
     const all = await db.getAll('shelters');
-    return all.length ? all : INITIAL_SHELTERS;
+    return all.length ? all : SEED_SHELTERS;
   } catch {
-    return INITIAL_SHELTERS;
+    return SEED_SHELTERS;
   }
 }
 
@@ -139,9 +141,9 @@ export async function getStoredAlerts(): Promise<AlertNotification[]> {
   try {
     const db = await getDB();
     const all = await db.getAll('alerts');
-    return all.length ? all : INITIAL_ALERTS;
+    return all.length ? all : SEED_ALERTS;
   } catch {
-    return INITIAL_ALERTS;
+    return SEED_ALERTS;
   }
 }
 
@@ -199,9 +201,9 @@ export async function getStoredWards(): Promise<WardRegion[]> {
   try {
     const db = await getDB();
     const all = await db.getAll('wards');
-    return all.length ? all : INITIAL_WARDS;
+    return all.length ? all : SEED_WARDS;
   } catch {
-    return INITIAL_WARDS;
+    return SEED_WARDS;
   }
 }
 

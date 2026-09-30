@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 
-interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
+interface PanelProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;

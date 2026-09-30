@@ -60,7 +60,7 @@ export const MPU6050TelemetryScreen: React.FC = () => {
 
     const unsubBreach = realtimeService.on('threshold_breach', (event: any) => {
       createAlert({
-        title: `CRITICAL DISPLACEMENT: ${sensor.name}`,
+        title: `Critical displacement: ${sensor.name}`,
         titleHi: `गंभीर विस्थापन चेतावनी: ${sensor.name}`,
         body: `Displacement velocity crossed critical 2.5 mm/s threshold (${event.displacement} mm/s). Immediate slope failure imminent.`,
         bodyHi: `विस्थापन वेग खतरनाक 2.5 मिमी/सेकंड सीमा को पार कर गया।`,

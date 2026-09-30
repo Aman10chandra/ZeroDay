@@ -14,7 +14,7 @@ interface TypedConfirmModalProps {
   prompt?: string;
   confirmButtonLabel?: string;
   actionLabel?: string;
-  variant?: 'destructive' | 'primary' | 'accent';
+  variant?: 'destructive' | 'primary' | 'secondary';
   metadataSummary?: { label: string; value: string }[];
 }
 

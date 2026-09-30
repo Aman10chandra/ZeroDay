@@ -19,8 +19,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const base = "inline-flex items-center justify-center font-sans text-xs font-medium transition-all duration-150 select-none rounded-[6px] focus:outline-none focus:ring-1 focus:ring-zd-accent active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0";
 
   const variants = {
-    // Primary is glacier teal
-    primary: "bg-[#5CC8BE] text-[#0A0F13] font-semibold hover:bg-[#68D4CA] border border-transparent shadow-sm",
+    // Primary is glacier teal with dark text (#06201E)
+    primary: "bg-[#5CC8BE] text-[#06201E] font-semibold hover:bg-[#68D4CA] border border-transparent shadow-sm",
     secondary: "bg-zd-surface border border-zd-border text-zd-text hover:bg-zd-hover",
     outline: "bg-transparent border border-zd-border text-zd-text hover:bg-zd-surface",
     destructive: "bg-sev-critical text-white hover:bg-[#D93D42] border border-transparent shadow-sm",

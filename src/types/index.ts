@@ -1,6 +1,6 @@
-export type SeverityLevel = 'safe' | 'advisory' | 'warning' | 'critical';
+export type SeverityLevel = 'normal' | 'safe' | 'advisory' | 'warning' | 'critical';
 
-export type UserRole = 'super_admin' | 'district_officer' | 'ward_rep' | 'viewer';
+export type UserRole = 'super_admin' | 'district_officer' | 'ward_rep' | 'viewer' | 'sdrf_operator';
 
 export interface UserProfile {
   id: string;
@@ -37,25 +37,42 @@ export interface WardRegion {
   statusSummary: string;
 }
 
-export type SensorType = 'mpu6050' | 'ultrasonic_weir' | 'soil_moisture' | 'sluice_actuator' | 'rain_gauge';
+export type SensorType = 
+  | 'mpu6050' 
+  | 'ultrasonic_weir' 
+  | 'soil_moisture' 
+  | 'sluice_actuator' 
+  | 'rain_gauge'
+  | 'piezometer_imu'
+  | 'ultrasonic_river'
+  | 'tiltmeter';
 
 export interface SensorNode {
   id: string;
   code: string;
-  name: string;
+  name?: string;
   type: SensorType;
   wardId: string;
-  locationName: string;
+  wardName?: string;
+  locationName?: string;
   lat: number;
   lng: number;
   status: 'online' | 'offline' | 'degraded';
-  batteryVoltage: number;
+  healthStatus?: 'healthy' | 'warning' | 'critical' | 'nominal';
+  batteryVoltage?: number;
   batteryPct: number;
-  rssiDbm: number;
-  snrDb: number;
-  lastSeen: string;
-  ipOrAddress: string;
-  firmware: string;
+  solarCharging?: boolean;
+  bleMeshRelayHops?: number;
+  loraRssi?: number;
+  lastPingTime?: string;
+  elevationM?: number;
+  calibrationOffset?: { pitch: number; roll: number };
+  rssiDbm?: number;
+  snrDb?: number;
+  lastSeen?: string;
+  ipOrAddress?: string;
+  firmware?: string;
+  telemetry?: any;
 }
 
 export interface MPU6050Kinematics {
@@ -141,6 +158,8 @@ export interface CommunityFieldReport {
   reporterContact: string;
   verifiedBy?: string;
   verificationNotes?: string;
+  mediaUrl?: string;
+  confirmationsCount?: number;
 }
 
 export interface AuditLogEntry {
@@ -155,14 +174,24 @@ export interface AuditLogEntry {
 }
 
 export interface GatewayMeshState {
-  loraFrequencyMhz: number;
-  pdrPct: number;
-  packetCount: number;
-  activeMeshNodes: number;
-  totalMeshNodes: number;
-  rangeKm: number;
-  cellGridActive: boolean;
-  nodes: {
+  gatewayId?: string;
+  frequencyBand?: string;
+  spreadingFactor?: string;
+  txPowerDbm?: number;
+  activeBleMeshNodes?: number;
+  totalBleMeshNodes?: number;
+  meshPacketsPerMinute?: number;
+  deadZoneHopsMax?: number;
+  effectiveRangeKm?: number;
+  activeNodes?: any[];
+  loraFrequencyMhz?: number;
+  pdrPct?: number;
+  packetCount?: number;
+  activeMeshNodes?: number;
+  totalMeshNodes?: number;
+  rangeKm?: number;
+  cellGridActive?: boolean;
+  nodes?: {
     id: string;
     label: string;
     role: 'gateway' | 'repeater' | 'endpoint';
@@ -175,3 +204,74 @@ export interface GatewayMeshState {
     parent?: string;
   }[];
 }
+
+export type RescueUrgency = 'critical' | 'urgent' | 'moderate' | 'safe';
+export type RescueStatus = 'pending' | 'dispatched' | 'in_progress' | 'rescued' | 'cancelled';
+export type RescueHazardType = 'flood_inundation' | 'landslide_trap' | 'building_collapse' | 'medical_trauma' | 'isolated_cut_off';
+
+export interface RescueRequest {
+  id: string;
+  code: string;
+  citizenName: string;
+  phone: string;
+  alternatePhone?: string;
+  wardId: string;
+  wardName: string;
+  district: string;
+  addressText: string;
+  lat: number;
+  lng: number;
+  peopleCount: number;
+  vulnerableDetails?: string;
+  urgency: RescueUrgency;
+  status: RescueStatus;
+  situation: string;
+  hazardType: RescueHazardType;
+  timestamp: string;
+  batteryPct?: number;
+  assignedOfficerId?: string;
+  assignedOfficerName?: string;
+  assignedUnit?: string;
+  notes?: string;
+}
+
+export interface StateOfficer {
+  id: string;
+  badgeNumber: string;
+  name: string;
+  rank: string;
+  department: 'SDRF' | 'NDRF' | 'DDMA' | 'ITBP' | 'State Fire & Rescue';
+  phone: string;
+  email: string;
+  assignedAreaId?: string;
+  assignedAreaName?: string;
+  status: 'on_duty' | 'deployed' | 'standby';
+  unitName: string;
+  personnelCount: number;
+  equipment: string[];
+}
+
+export interface StateSection {
+  id: string;
+  code: string;
+  name: string;
+  district: string;
+  riverBasin: string;
+  riskLevel: SeverityLevel;
+  riskScore: number;
+  activeRescueCount: number;
+  totalPopulation: number;
+  evacuatedCount: number;
+  assignedOfficerId?: string;
+  assignedOfficerName?: string;
+  assignedOfficerRank?: string;
+  assignedUnit?: string;
+  officerPhone?: string;
+  lat: number;
+  lng: number;
+  weatherCondition: string;
+  roadAccessStatus: 'Open' | 'Caution' | 'Blocked / Cut Off';
+  bridgeStatus: 'Intact' | 'Submerged' | 'Damaged';
+  rainfallLast3hMm: number;
+}
+

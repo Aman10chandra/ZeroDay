@@ -35,26 +35,26 @@ const IndustrialSensorHousing: React.FC<SensorModelProps> = ({ rotation, filterA
 
   return (
     <group ref={meshRef} position={[0, 0.5, 0]}>
-      {/* Sensor Main Enclosure: Anodized Dark Slate IP68 Enclosure */}
+      {/* Sensor Main Enclosure: Crisp Industrial Silver-Slate Anodized IP68 Enclosure */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[2.2, 0.6, 1.6]} />
-        <meshStandardMaterial color="#3A4A58" metalness={0.7} roughness={0.35} />
+        <meshStandardMaterial color="#6A8094" metalness={0.5} roughness={0.3} />
       </mesh>
 
       {/* Top Lid / PCB Cover Plate */}
       <mesh position={[0, 0.32, 0]}>
         <boxGeometry args={[2.0, 0.05, 1.4]} />
-        <meshStandardMaterial color="#4A5B6A" metalness={0.6} roughness={0.4} />
+        <meshStandardMaterial color="#889EAF" metalness={0.6} roughness={0.25} />
       </mesh>
 
       {/* Industrial Mounting Flanges (Left & Right) */}
       <mesh position={[-1.25, -0.15, 0]}>
         <boxGeometry args={[0.3, 0.15, 1.2]} />
-        <meshStandardMaterial color="#2A3540" metalness={0.9} roughness={0.2} />
+        <meshStandardMaterial color="#4A5C6D" metalness={0.7} roughness={0.3} />
       </mesh>
       <mesh position={[1.25, -0.15, 0]}>
         <boxGeometry args={[0.3, 0.15, 1.2]} />
-        <meshStandardMaterial color="#2A3540" metalness={0.9} roughness={0.2} />
+        <meshStandardMaterial color="#4A5C6D" metalness={0.7} roughness={0.3} />
       </mesh>
 
       {/* Cable Gland */}
@@ -133,14 +133,14 @@ const IsometricSensorFallback: React.FC<SensorModelProps> = ({ rotation, isVibra
           <div className="w-full h-1 bg-[#2C6E49] rounded-sm opacity-80" />
 
           {/* Center Chip */}
-          <div className="w-16 h-16 bg-[#0E1317] border border-white/10 rounded mx-auto flex flex-col items-center justify-center font-mono text-[9px] text-zd-dim">
+          <div className="w-16 h-16 bg-[#0E1317] border border-zd-border rounded mx-auto flex flex-col items-center justify-center font-mono text-[9px] text-zd-dim">
             <span>MPU6050</span>
             <span className="text-[7px] text-zd-accent">I2C 0x68</span>
           </div>
 
           {/* Tiny LED */}
           <div className="flex items-center justify-between text-[8px] font-mono text-zd-dim">
-            <span>IP68 ENCLOSURE</span>
+            <span>IP68 enclosure</span>
             <div className="flex items-center gap-1">
               <span className={`w-2 h-2 rounded-full ${isVibrating ? 'bg-sev-critical animate-ping' : 'bg-zd-accent animate-pulse'}`} />
               <span className="text-[9px] text-zd-text">SYS</span>

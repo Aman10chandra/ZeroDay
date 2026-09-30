@@ -115,20 +115,20 @@ export const GatewayMeshScreen: React.FC = () => {
         <div className="space-y-8">
           {/* Top Half: Map on Left (Wide) + Four Large Numbers Beside It */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Base Station & 3 Nodes Map */}
+            {/* Base Station & 3 Nodes Diagram with subtle terrain backdrop */}
             <div className="lg:col-span-8 bg-zd-surface border border-zd-border rounded-panel p-5 relative overflow-hidden h-96">
-              <span className="font-sans text-xs text-zd-muted block mb-3">
-                Base Station MS-8842 & Line-of-Sight Links
+              {/* Subtle terrain backdrop at 12% opacity */}
+              <img
+                src="/assets/terrain-dark.webp"
+                alt="Catchment terrain relief"
+                className="absolute inset-0 w-full h-full object-cover object-center opacity-12 pointer-events-none filter contrast-125"
+              />
+
+              <span className="font-sans text-xs text-zd-muted block mb-3 relative z-10">
+                Base station MS-8842 & line-of-sight links
               </span>
 
-              <svg className="w-full h-80" viewBox="0 0 600 320">
-                <defs>
-                  <pattern id="loraGrid" width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="0.5" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#loraGrid)" />
-
+              <svg className="w-full h-80 relative z-10" viewBox="0 0 600 320">
                 {/* Base Station (Center-Left) */}
                 <g transform="translate(140, 160)">
                   <circle r="18" fill="rgba(92, 200, 190, 0.12)" />
@@ -204,40 +204,40 @@ export const GatewayMeshScreen: React.FC = () => {
 
               {/* Distance label on hover */}
               {hoveredLink && (
-                <div className="absolute bottom-4 right-4 px-3 py-1 bg-zd-base border border-zd-border rounded-[4px] font-mono text-xs text-zd-text">
-                  Distance: <span className="text-zd-accent font-bold">{hoveredLink}</span>
+                <div className="absolute bottom-4 right-4 px-3 py-1 bg-zd-surface border border-zd-border rounded-control font-mono text-xs text-zd-text z-20 shadow-sm">
+                  Distance: <span className="text-zd-accent font-semibold">{hoveredLink}</span>
                 </div>
               )}
             </div>
 
-            {/* Beside it: Four Large Quiet Numbers */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="p-5 bg-zd-surface border border-zd-border rounded-panel">
-                <span className="font-sans text-xs text-zd-muted block mb-1">Mean Signal RSSI</span>
-                <span className="font-mono text-3xl font-light text-zd-text">-74 dBm</span>
+            {/* Beside it: Four Large Quiet Numbers (Borderless, with divider lines between them) */}
+            <div className="lg:col-span-4 bg-zd-surface border border-zd-border rounded-panel divide-y divide-zd-border">
+              <div className="p-4">
+                <span className="font-sans text-xs text-zd-muted block mb-1">Mean signal RSSI</span>
+                <span className="font-mono text-3xl font-light text-zd-text tracking-tight">-74 dBm</span>
               </div>
 
-              <div className="p-5 bg-zd-surface border border-zd-border rounded-panel">
-                <span className="font-sans text-xs text-zd-muted block mb-1">Signal-to-Noise Ratio</span>
-                <span className="font-mono text-3xl font-light text-zd-text">+9.2 dB</span>
+              <div className="p-4">
+                <span className="font-sans text-xs text-zd-muted block mb-1">Signal-to-noise ratio</span>
+                <span className="font-mono text-3xl font-light text-zd-text tracking-tight">+9.2 dB</span>
               </div>
 
-              <div className="p-5 bg-zd-surface border border-zd-border rounded-panel">
-                <span className="font-sans text-xs text-zd-muted block mb-1">Packet Delivery Ratio</span>
-                <span className="font-mono text-3xl font-light text-sev-normal">99.4%</span>
+              <div className="p-4">
+                <span className="font-sans text-xs text-zd-muted block mb-1">Packet delivery ratio</span>
+                <span className="font-mono text-3xl font-light text-sev-normal tracking-tight">99.4%</span>
               </div>
 
-              <div className="p-5 bg-zd-surface border border-zd-border rounded-panel">
-                <span className="font-sans text-xs text-zd-muted block mb-1">Effective Range</span>
-                <span className="font-mono text-3xl font-light text-zd-text">12 km</span>
+              <div className="p-4">
+                <span className="font-sans text-xs text-zd-muted block mb-1">Effective range</span>
+                <span className="font-mono text-3xl font-light text-zd-text tracking-tight">12 km</span>
               </div>
             </div>
           </div>
 
-          {/* Bottom: Node List (3 Rows) */}
+          {/* Bottom: Node List (3 Rows, 48px height with hairline between and chevron on hover) */}
           <div className="bg-zd-surface border border-zd-border rounded-panel overflow-hidden">
             <div className="p-4 border-b border-zd-border flex items-center justify-between">
-              <h3 className="font-sans text-xs font-semibold text-zd-text">Reporting Telemetry Nodes</h3>
+              <h3 className="font-sans text-xs font-semibold text-zd-text">Reporting telemetry nodes</h3>
               <span className="font-mono text-xs text-zd-dim">3 of 3 connected</span>
             </div>
 
@@ -246,22 +246,22 @@ export const GatewayMeshScreen: React.FC = () => {
                 <div
                   key={node.id}
                   onClick={() => setSelectedNodeDrawer(node)}
-                  className="p-4 flex items-center justify-between hover:bg-zd-hover cursor-pointer transition-colors"
+                  className="h-12 px-4 flex items-center justify-between hover:bg-zd-hover cursor-pointer transition-colors group"
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-2 h-2 rounded-full bg-sev-normal" />
-                    <div>
+                    <div className="flex items-baseline gap-2">
                       <h4 className="font-sans text-xs font-medium text-zd-text">{node.name}</h4>
-                      <p className="font-mono text-[11px] text-zd-dim">{node.sensor}</p>
+                      <span className="font-mono text-[11px] text-zd-dim">· {node.sensor}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-6 font-mono text-xs text-zd-muted">
                     <span>Battery {node.battery}%</span>
                     <span>Received {node.lastPacket}</span>
-                    <button className="text-zd-accent hover:underline font-sans text-xs">
+                    <span className="text-zd-accent group-hover:underline font-sans text-xs">
                       Diagnostics
-                    </button>
+                    </span>
                   </div>
                 </div>
               ))}
@@ -283,7 +283,7 @@ export const GatewayMeshScreen: React.FC = () => {
                 ) : (
                   <Smartphone className="w-4 h-4 text-sev-normal" />
                 )}
-                <span>Cell network: {cellNetworkDown ? 'DOWN (Dead Zone Fallback Active)' : 'OPERATIONAL'}</span>
+                <span>Cell network: {cellNetworkDown ? 'Down (dead zone fallback active)' : 'Operational'}</span>
               </button>
             </div>
 
@@ -300,12 +300,17 @@ export const GatewayMeshScreen: React.FC = () => {
 
           {/* Focal Point: Hop Diagram on Faint Backdrop */}
           <div className="bg-zd-surface border border-zd-border rounded-panel p-8 relative overflow-hidden">
-            <span className="font-sans text-xs text-zd-muted block mb-8">
-              Multi-Hop BLE Mesh Relay Propagation
+            <img
+              src="/assets/terrain-dark.webp"
+              alt="Catchment terrain relief"
+              className="absolute inset-0 w-full h-full object-cover object-center opacity-10 pointer-events-none filter contrast-125"
+            />
+            <span className="font-sans text-xs text-zd-muted block mb-8 relative z-10">
+              Multi-hop BLE mesh relay propagation
             </span>
 
             {/* Hop Diagram Nodes */}
-            <div className="relative flex items-center justify-between max-w-4xl mx-auto py-8">
+            <div className="relative flex items-center justify-between max-w-4xl mx-auto py-8 z-10">
               {/* Connecting Line */}
               <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-[2px] bg-zd-border z-0" />
 
@@ -329,7 +334,7 @@ export const GatewayMeshScreen: React.FC = () => {
                     </div>
 
                     {/* Node Labels */}
-                    <span className="font-sans text-xs font-semibold text-zd-text mt-3">
+                    <span className="font-sans text-xs font-medium text-zd-text mt-3">
                       {hop.name}
                     </span>
                     <span className="font-mono text-[10px] text-zd-dim mt-0.5">
@@ -342,8 +347,8 @@ export const GatewayMeshScreen: React.FC = () => {
 
             {/* Final Delivered Summary */}
             {deliveredCount !== null && (
-              <div className="mt-8 text-center p-3 bg-zd-base border border-zd-border rounded-panel max-w-sm mx-auto">
-                <span className="font-sans text-xs font-semibold text-sev-normal flex items-center justify-center gap-2">
+              <div className="mt-8 text-center p-3 bg-zd-base border border-zd-border rounded-panel max-w-sm mx-auto relative z-10">
+                <span className="font-sans text-xs font-medium text-sev-normal flex items-center justify-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Delivered to {deliveredCount} of 12 devices</span>
                 </span>
@@ -357,7 +362,7 @@ export const GatewayMeshScreen: React.FC = () => {
               onClick={() => setReceiptLogOpen(!receiptLogOpen)}
               className="p-4 flex items-center justify-between cursor-pointer hover:bg-zd-hover transition-colors"
             >
-              <h3 className="font-sans text-xs font-semibold text-zd-text">Receipt Acknowledgement Log</h3>
+              <h3 className="font-sans text-xs font-semibold text-zd-text">Receipt acknowledgement log</h3>
               <button className="text-zd-muted hover:text-zd-text">
                 {receiptLogOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>

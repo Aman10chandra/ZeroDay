@@ -9,30 +9,17 @@ export default {
     extend: {
       colors: {
         zd: {
-          // Dark palette ("Dawn over the valley")
-          base: '#0A0F13',
-          surface: '#10161B',
-          raised: '#161E25',
-          hover: '#1D2730',
-          border: 'rgba(255, 255, 255, 0.07)',
-          'border-focus': 'rgba(255, 255, 255, 0.18)',
-          text: '#EAF0F3',
-          muted: '#93A1AC',
-          dim: '#5E6C77',
-
-          // Light palette (warm paper)
-          'light-base': '#F6F5F1',
-          'light-surface': '#ECE9E2',
-          'light-raised': '#E2DED6',
-          'light-hover': '#DAD5CB',
-          'light-border': 'rgba(0, 0, 0, 0.08)',
-          'light-text': '#12181D',
-          'light-muted': '#58656E',
-          'light-dim': '#8B97A0',
-
-          // Single accent: Glacier Teal
-          accent: '#5CC8BE',
-          'accent-dim': 'rgba(92, 200, 190, 0.12)',
+          base: 'rgb(var(--bg-base) / <alpha-value>)',
+          surface: 'rgb(var(--bg-surface) / <alpha-value>)',
+          raised: 'rgb(var(--bg-raised) / <alpha-value>)',
+          hover: 'rgb(var(--bg-hover) / <alpha-value>)',
+          border: 'rgb(var(--border-color) / 0.08)',
+          'border-focus': 'rgb(var(--border-focus) / 0.20)',
+          text: 'rgb(var(--text-ink) / <alpha-value>)',
+          muted: 'rgb(var(--text-muted) / <alpha-value>)',
+          dim: 'rgb(var(--text-dim) / <alpha-value>)',
+          accent: 'rgb(var(--accent) / <alpha-value>)',
+          'accent-dim': 'rgb(var(--accent) / 0.14)',
         },
         sev: {
           normal: '#4CB782',

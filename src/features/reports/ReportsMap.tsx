@@ -1,47 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import { WardRegion, SensorNode, ShelterPoint } from '../../types';
-import { ZoomIn, ZoomOut, Compass, MapPin, Layers, Radio, Globe, Sun, Moon } from 'lucide-react';
+import { CommunityFieldReport, WardRegion } from '../../types';
+import { ZoomIn, ZoomOut, Compass, Globe, Sun, Moon, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import clsx from 'clsx';
 
-interface OverviewMapProps {
+interface ReportsMapProps {
+  reports: CommunityFieldReport[];
+  selectedReportId: string | null;
+  onSelectReport: (id: string) => void;
   wards: WardRegion[];
-  sensors: SensorNode[];
-  shelters: ShelterPoint[];
-  selectedWardId: string | null;
-  onSelectWard: (wardId: string) => void;
-  hoveredWardId: string | null;
-  onHoverWard: (wardId: string | null) => void;
-  layers: {
-    wards: boolean;
-    sensors: boolean;
-    shelters: boolean;
-    rainfall: boolean;
-    rivers: boolean;
-    susceptibility: boolean;
-  };
 }
 
-export const OverviewMap: React.FC<OverviewMapProps> = ({
+export const ReportsMap: React.FC<ReportsMapProps> = ({
+  reports,
+  selectedReportId,
+  onSelectReport,
   wards,
-  sensors,
-  shelters,
-  selectedWardId,
-  onSelectWard,
-  hoveredWardId,
-  onHoverWard,
-  layers,
 }) => {
   const { isOpsMode, setOpsMode } = useStore();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [useRealMap, setUseRealMap] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // Geographic center for Kotdwar & Pauri Garhwal
+  // Geographic center for Pauri Garhwal / Kotdwar
   const pauriCenter: [number, number] = [78.535, 29.752];
 
   // Combined ESRI World Canvas tile style with both Light and Dark sources
@@ -136,16 +122,16 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         container: mapContainerRef.current,
         style: esriCombinedStyle,
         center: pauriCenter,
-        zoom: 11.8,
-        pitch: 24,
-        bearing: -8,
+        zoom: 12.0,
+        pitch: 20,
+        bearing: -6,
         attributionControl: false,
       });
 
       map.on('load', () => {
         setMapLoaded(true);
 
-        // 1. Add Wards GeoJSON Source with valid closed rings
+        // 1. Add Wards GeoJSON Source
         const wardsGeoJson: any = {
           type: 'FeatureCollection',
           features: wards.map(ward => ({
@@ -155,8 +141,6 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
               id: ward.id,
               name: ward.name,
               riskLevel: ward.riskLevel,
-              riskScore: ward.riskScore,
-              riverLevelM: ward.riverLevelM,
             },
             geometry: {
               type: 'Polygon',
@@ -170,7 +154,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           data: wardsGeoJson,
         });
 
-        // Wards Fill Layer with severity-based colors
+        // Wards Fill Layer
         map.addLayer({
           id: 'wards-fill-layer',
           type: 'fill',
@@ -179,16 +163,16 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
             'fill-color': [
               'match',
               ['get', 'riskLevel'],
-              'critical', 'rgba(229, 72, 77, 0.28)',
-              'warning', 'rgba(232, 132, 58, 0.22)',
-              'advisory', 'rgba(217, 180, 74, 0.18)',
-              /* default/safe */ 'rgba(76, 183, 130, 0.16)'
+              'critical', 'rgba(229, 72, 77, 0.16)',
+              'warning', 'rgba(232, 132, 58, 0.12)',
+              'advisory', 'rgba(217, 180, 74, 0.09)',
+              /* default/safe */ 'rgba(76, 183, 130, 0.08)'
             ],
-            'fill-opacity': 0.9,
+            'fill-opacity': 0.8,
           },
         });
 
-        // Wards Border Layer
+        // Wards Outline Layer
         map.addLayer({
           id: 'wards-outline-layer',
           type: 'line',
@@ -202,8 +186,9 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
               'advisory', '#D9B44A',
               /* default */ '#4CB782'
             ],
-            'line-width': 2.0,
-            'line-opacity': 0.95,
+            'line-width': 1.6,
+            'line-opacity': 0.75,
+            'line-dasharray': [3, 2],
           },
         });
 
@@ -213,7 +198,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           features: [
             {
               type: 'Feature',
-              properties: { name: 'Khoh Riverbed Surge' },
+              properties: { name: 'Khoh Riverbed' },
               geometry: {
                 type: 'LineString',
                 coordinates: [
@@ -239,9 +224,9 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           type: 'line',
           source: 'river-torrent',
           paint: {
-            'line-color': '#132B3A',
-            'line-width': 12,
-            'line-opacity': 0.7,
+            'line-color': isOpsMode ? '#132B3A' : '#D0E4E7',
+            'line-width': 10,
+            'line-opacity': 0.5,
           },
         });
 
@@ -250,91 +235,26 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           type: 'line',
           source: 'river-torrent',
           paint: {
-            'line-color': '#5CC8BE',
-            'line-width': 2.5,
+            'line-color': isOpsMode ? '#5CC8BE' : '#0D9488',
+            'line-width': 2.0,
             'line-dasharray': [4, 3],
-            'line-opacity': 0.85,
+            'line-opacity': 0.8,
           },
-        });
-
-        // Click on ward polygon
-        map.on('click', 'wards-fill-layer', (e) => {
-          if (e.features && e.features[0]) {
-            const wardId = e.features[0].properties?.id;
-            if (wardId) onSelectWard(wardId);
-          }
-        });
-
-        // Hover effect on ward
-        map.on('mouseenter', 'wards-fill-layer', (e) => {
-          map.getCanvas().style.cursor = 'pointer';
-          if (e.features && e.features[0]) {
-            const wardId = e.features[0].properties?.id;
-            if (wardId) onHoverWard(wardId);
-          }
-        });
-
-        map.on('mouseleave', 'wards-fill-layer', () => {
-          map.getCanvas().style.cursor = '';
-          onHoverWard(null);
         });
       });
 
       mapRef.current = map;
+      setMapInstance(map);
 
       return () => {
         map.remove();
+        setMapInstance(null);
       };
     } catch (err) {
-      console.warn('MapLibre GL failed to initialize (falling back to SVG):', err);
+      console.warn('MapLibre GL failed to initialize in reports:', err);
       setUseRealMap(false);
     }
   }, []);
-
-  // Sync Ward GeoJSON data if wards update
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const source = map.getSource('wards-geojson') as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData({
-        type: 'FeatureCollection',
-        features: wards.map(ward => ({
-          type: 'Feature',
-          id: ward.id,
-          properties: {
-            id: ward.id,
-            name: ward.name,
-            riskLevel: ward.riskLevel,
-            riskScore: ward.riskScore,
-            riverLevelM: ward.riverLevelM,
-          },
-          geometry: {
-            type: 'Polygon',
-            coordinates: [closePolygonRing(ward.polygon)],
-          },
-        })),
-      });
-    }
-  }, [wards, mapLoaded]);
-
-  // Sync Visibility of Layers
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const setVisibility = (layerId: string, visible: boolean) => {
-      if (map.getLayer(layerId)) {
-        map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-      }
-    };
-
-    setVisibility('wards-fill-layer', layers.wards);
-    setVisibility('wards-outline-layer', layers.wards);
-    setVisibility('river-torrent-casing', layers.rivers);
-    setVisibility('river-torrent-stream', layers.rivers);
-  }, [layers, mapLoaded]);
 
   // Sync Theme (Light / Dark) for MapLibre Basemaps
   useEffect(() => {
@@ -362,125 +282,118 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
     }
   }, [isOpsMode, mapLoaded]);
 
-  // Sync Markers for Shelters, Sensors, and Ward Labels on MapLibre
+  // Sync Report Markers on MapLibre
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    const map = mapInstance;
+    if (!map) return;
 
-    // Clear previous markers
+    // Clear existing markers
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    // 1. Ward Center Tactical Name Badges
-    if (layers.wards) {
-      wards.forEach(ward => {
-        const isSelected = ward.id === selectedWardId;
-        const isCritical = ward.riskLevel === 'critical';
-        const isWarning = ward.riskLevel === 'warning';
-        const color = isCritical ? '#E5484D' : isWarning ? '#E8843A' : ward.riskLevel === 'advisory' ? '#D9B44A' : '#4CB782';
+    reports.forEach((rep, idx) => {
+      const ward = wards.find(w => w.id === rep.wardId);
+      const lat = rep.lat ?? (ward ? ward.lat + (idx * 0.004 - 0.004) : 29.7475);
+      const lng = rep.lng ?? (ward ? ward.lng + (idx * 0.004 - 0.004) : 78.5305);
 
-        const cardBg = isOpsMode ? 'rgba(10, 15, 19, 0.90)' : 'rgba(255, 255, 255, 0.95)';
-        const cardBorder = isSelected 
-          ? (isOpsMode ? '#5CC8BE' : '#0D9488') 
-          : isCritical 
-            ? '#E5484D' 
-            : (isOpsMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(18, 24, 29, 0.15)');
-        const cardTextColor = isOpsMode ? '#FFFFFF' : '#111827';
-        const cardShadow = isOpsMode ? '0 4px 14px rgba(0,0,0,0.6)' : '0 4px 14px rgba(0,0,0,0.12)';
+      const isSelected = rep.id === selectedReportId;
+      const isVerified = rep.status === 'verified';
+      const isUrgent = rep.urgency === 'critical' || rep.status === 'urgent';
+      const isWarning = rep.urgency === 'high';
 
-        const el = document.createElement('div');
-        el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-110';
-        el.innerHTML = `
-          <div style="
-            background: ${cardBg};
-            border: 1px solid ${cardBorder};
-            box-shadow: ${cardShadow};
-            padding: 4px 10px;
-            border-radius: 6px;
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-          ">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${color}; ${isCritical ? 'box-shadow: 0 0 8px #E5484D;' : ''}"></span>
-            <span style="font-size: 11px; font-weight: 600; color: ${cardTextColor}; font-family: monospace; letter-spacing: -0.01em;">${ward.name}</span>
-            <span style="font-size: 10px; color: ${color}; text-transform: uppercase; font-weight: 700; margin-left: 2px;">${ward.riskScore}</span>
-          </div>
-        `;
-        el.onclick = (e) => {
-          e.stopPropagation();
-          onSelectWard(ward.id);
-        };
+      const beaconColor = isVerified 
+        ? '#4CB782' 
+        : isUrgent 
+          ? '#E5484D' 
+          : isWarning 
+            ? '#E8843A' 
+            : '#5CC8BE';
 
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-          .setLngLat([ward.lng, ward.lat])
-          .addTo(map);
+      const cardBg = isOpsMode ? 'rgba(16, 22, 27, 0.92)' : 'rgba(255, 255, 255, 0.95)';
+      const cardBorder = isSelected 
+        ? (isOpsMode ? '#5CC8BE' : '#0D9488') 
+        : isUrgent 
+          ? '#E5484D' 
+          : (isOpsMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(18, 24, 29, 0.15)');
+      const cardTextColor = isOpsMode ? '#FFFFFF' : '#111827';
+      const cardShadow = isOpsMode 
+        ? (isSelected ? '0 0 20px rgba(92, 200, 190, 0.35)' : '0 4px 14px rgba(0, 0, 0, 0.6)') 
+        : (isSelected ? '0 0 16px rgba(13, 148, 136, 0.35)' : '0 4px 14px rgba(0, 0, 0, 0.12)');
 
-        markersRef.current.push(marker);
-      });
-    }
+      const el = document.createElement('div');
+      el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-110';
+      el.innerHTML = `
+        <div style="
+          background: ${cardBg};
+          border: 1.5px solid ${cardBorder};
+          box-shadow: ${cardShadow};
+          padding: 4px 10px;
+          border-radius: 6px;
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          white-space: nowrap;
+          transform: translateY(${isSelected ? '-3px' : '0'});
+          transition: all 0.2s ease-out;
+        ">
+          <span style="
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            background-color: ${beaconColor}; 
+            ${isUrgent ? 'box-shadow: 0 0 10px #E5484D;' : ''}
+          "></span>
+          <span style="font-size: 11px; font-weight: 600; color: ${cardTextColor}; font-family: monospace; letter-spacing: -0.01em;">
+            ${rep.category.replace('_', ' ')}
+          </span>
+          <span style="font-size: 9px; font-weight: 700; color: ${beaconColor}; text-transform: uppercase;">
+            ${rep.status}
+          </span>
+        </div>
+        <div style="
+          width: 0; 
+          height: 0; 
+          border-left: 5px solid transparent; 
+          border-right: 5px solid transparent; 
+          border-top: 5px solid ${cardBorder};
+          margin-top: -1px;
+        "></div>
+      `;
 
-    // 2. Shelters Markers
-    if (layers.shelters) {
-      shelters.forEach(shelter => {
-        const el = document.createElement('div');
-        el.className = 'w-6 h-6 rounded-full bg-sev-safe/25 border border-sev-safe flex items-center justify-center cursor-pointer shadow-sm hover:scale-125 transition-transform';
-        el.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-[#4CB782]"></div>';
-        el.title = `${shelter.name} (${shelter.capacity} capacity)`;
-        el.onclick = (e) => {
-          e.stopPropagation();
-          onSelectWard(shelter.wardId);
-        };
+      el.onclick = (e) => {
+        e.stopPropagation();
+        onSelectReport(rep.id);
+      };
 
-        const marker = new maplibregl.Marker({ element: el })
-          .setLngLat([shelter.lng, shelter.lat])
-          .addTo(map);
+      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map);
 
-        markersRef.current.push(marker);
-      });
-    }
+      markersRef.current.push(marker);
+    });
+  }, [reports, wards, selectedReportId, isOpsMode, mapInstance]);
 
-    // 3. Sensors Markers
-    if (layers.sensors) {
-      sensors.forEach(sensor => {
-        const isCritical = sensor.healthStatus === 'critical';
-        const isWarning = sensor.healthStatus === 'warning';
-        const sensorColor = isCritical ? '#E5484D' : isWarning ? '#E8843A' : (isOpsMode ? '#5CC8BE' : '#0D9488');
-        const innerBorder = isOpsMode ? '#0A0F13' : '#FFFFFF';
-
-        const el = document.createElement('div');
-        el.className = 'w-4 h-4 rounded-full flex items-center justify-center cursor-pointer hover:scale-125 transition-transform';
-        el.style.backgroundColor = `${sensorColor}33`;
-        el.innerHTML = `<div style="width: 7px; height: 7px; border-radius: 50%; background-color: ${sensorColor}; border: 1px solid ${innerBorder};"></div>`;
-        el.title = `Sensor ${sensor.code} (${sensor.type})`;
-
-        const marker = new maplibregl.Marker({ element: el })
-          .setLngLat([sensor.lng, sensor.lat])
-          .addTo(map);
-
-        markersRef.current.push(marker);
-      });
-    }
-  }, [wards, shelters, sensors, layers.wards, layers.shelters, layers.sensors, selectedWardId, isOpsMode, mapLoaded]);
-
-  // Fly to selected ward on map
+  // Fly to selected report on map
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !selectedWardId) return;
+    if (!map || !mapLoaded || !selectedReportId) return;
 
-    const ward = wards.find(w => w.id === selectedWardId);
-    if (ward) {
+    const rep = reports.find(r => r.id === selectedReportId);
+    if (rep) {
+      const ward = wards.find(w => w.id === rep.wardId);
+      const lat = rep.lat ?? (ward ? ward.lat : 29.7475);
+      const lng = rep.lng ?? (ward ? ward.lng : 78.5305);
       map.flyTo({
-        center: [ward.lng, ward.lat],
-        zoom: 13.2,
-        pitch: 32,
+        center: [lng, lat],
+        zoom: 13.5,
+        pitch: 28,
         duration: 900,
       });
     }
-  }, [selectedWardId, wards, mapLoaded]);
+  }, [selectedReportId, reports, wards, mapLoaded]);
 
-  // SVG Projection for Fallback / Shaded Relief view
+  // SVG Projection for Fallback / Relief view
   const minLat = 29.70, maxLat = 29.80;
   const minLng = 78.49, maxLng = 78.58;
 
@@ -492,7 +405,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-zd-base">
-      {/* 1. Real MapLibre GL Tile Map Container (Pauri Garhwal Coordinates) */}
+      {/* 1. Real MapLibre GL Tile Map Container (Pauri Garhwal) */}
       <div
         ref={mapContainerRef}
         className={clsx(
@@ -501,7 +414,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         )}
       />
 
-      {/* 2. Fallback SVG Map (with mountain hillshade relief) */}
+      {/* 2. Fallback SVG Map */}
       <div 
         className={clsx(
           "absolute inset-0 w-full h-full transition-opacity duration-300",
@@ -532,78 +445,65 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.25s ease-out' }}
         >
           <defs>
-            <pattern id="surveyGrid2" width="60" height="60" patternUnits="userSpaceOnUse">
+            <pattern id="reportsGrid2" width="50" height="50" patternUnits="userSpaceOnUse">
               <path 
-                d="M 60 0 L 0 0 0 60" 
+                d="M 50 0 L 0 0 0 50" 
                 fill="none" 
                 stroke={isOpsMode ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.06)"} 
                 strokeWidth="0.5" 
               />
-              <circle 
-                cx="0" 
-                cy="0" 
-                r="0.6" 
-                fill={isOpsMode ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.12)"} 
-              />
-            </pattern>
-            <pattern id="faintCriticalHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
-              <line x1="0" y1="0" x2="0" y2="10" stroke="#E5484D" strokeWidth="1" strokeOpacity="0.18" />
             </pattern>
           </defs>
 
-          <rect width="100%" height="100%" fill="url(#surveyGrid2)" />
+          <rect width="100%" height="100%" fill="url(#reportsGrid2)" />
 
           {/* Rivers */}
-          {layers.rivers && (
-            <path
-              d="M 120 660 C 260 610, 420 540, 530 400 C 620 290, 740 230, 940 180"
-              fill="none"
-              stroke={isOpsMode ? "#5CC8BE" : "#0D9488"}
-              strokeWidth="2.5"
-              strokeDasharray="6 4"
-              opacity="0.85"
-            />
-          )}
+          <path
+            d="M 120 660 C 260 610, 420 540, 530 400 C 620 290, 740 230, 940 180"
+            fill="none"
+            stroke={isOpsMode ? "#5CC8BE" : "#0D9488"}
+            strokeWidth="2.5"
+            strokeDasharray="6 4"
+            opacity="0.8"
+          />
 
-          {/* Ward polygons */}
-          {layers.wards && wards.map((ward) => {
-            const isSelected = selectedWardId === ward.id;
-            const isHovered = hoveredWardId === ward.id;
-            const points = ward.polygon.map(coord => {
-              const pt = project(coord[0], coord[1]);
-              return `${pt.x},${pt.y}`;
-            }).join(' ');
-
-            const center = project(ward.lat, ward.lng);
+          {/* Report Pins */}
+          {reports.map((rep) => {
+            const pt = project(rep.lat, rep.lng);
+            const isSelected = selectedReportId === rep.id;
+            const isUrgent = rep.urgency === 'critical' || rep.status === 'urgent';
+            const color = rep.status === 'verified' ? '#4CB782' : isUrgent ? '#E5484D' : '#E8843A';
 
             return (
-              <g 
-                key={ward.id}
-                onClick={() => onSelectWard(ward.id)}
-                onMouseEnter={() => onHoverWard(ward.id)}
-                onMouseLeave={() => onHoverWard(null)}
-                className="cursor-pointer"
+              <g
+                key={rep.id}
+                transform={`translate(${pt.x}, ${pt.y})`}
+                onClick={() => onSelectReport(rep.id)}
+                className="cursor-pointer group"
               >
-                <polygon
-                  points={points}
-                  fill={ward.riskLevel === 'critical' ? 'rgba(229, 72, 77, 0.22)' : 'rgba(76, 183, 130, 0.16)'}
-                  stroke={isHovered || isSelected ? (isOpsMode ? '#5CC8BE' : '#0D9488') : ward.riskLevel === 'critical' ? '#E5484D' : '#4CB782'}
-                  strokeWidth={isHovered || isSelected ? 2 : 1.5}
+                {isSelected && (
+                  <circle r="20" fill="none" stroke={color} strokeWidth="1.5" className="animate-ping" opacity="0.6" />
+                )}
+                <circle
+                  r={isSelected ? 10 : 7}
+                  fill={color}
+                  stroke={isOpsMode ? "#0A0F13" : "#FFFFFF"}
+                  strokeWidth="2"
                 />
                 <text
-                  x={center.x}
-                  y={center.y}
-                  textAnchor="middle"
-                  fill={isOpsMode ? "#EAF0F3" : "#12181D"}
-                  fontSize="12"
-                  fontWeight="600"
-                  style={{ 
-                    paintOrder: 'stroke fill', 
-                    stroke: isOpsMode ? '#0A0F13' : '#FFFFFF', 
-                    strokeWidth: '3px' 
+                  x="14"
+                  y="4"
+                  fill={isOpsMode ? "#FFFFFF" : "#111827"}
+                  fontSize="11"
+                  fontFamily="monospace"
+                  fontWeight={isSelected ? 'bold' : 'normal'}
+                  style={{
+                    paintOrder: 'stroke fill',
+                    stroke: isOpsMode ? '#0A0F13' : '#FFFFFF',
+                    strokeWidth: '3px'
                   }}
                 >
-                  {ward.name}
+                  {rep.category.replace('_', ' ')}
                 </text>
               </g>
             );
@@ -611,20 +511,20 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         </svg>
       </div>
 
-      {/* 3. Real Map Engine Badge, Light/Dark Switcher & Location Tag (Bottom Left) */}
-      <div className="absolute bottom-5 left-16 z-20 flex items-center gap-2 flex-wrap">
-        {/* Toggle Real Map vs Tactical Hillshade */}
+      {/* 3. Bottom Controls: Real Map Switcher, Light/Dark Option & Location Tag */}
+      <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2 flex-wrap">
+        {/* Toggle Real Map vs Relief */}
         <button
           onClick={() => setUseRealMap(!useRealMap)}
           className="h-8 px-2.5 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-text text-xs flex items-center gap-1.5 transition-colors shadow-sm font-sans backdrop-blur"
-          title="Toggle Real Map of Pauri Garhwal vs Hillshade Vector"
+          title="Toggle Real Map of Pauri Garhwal vs Hillshade Relief"
         >
           <Globe className="w-3.5 h-3.5 text-zd-accent" />
           <span>{useRealMap ? 'Real Pauri Garhwal Map' : 'Hillshade Relief'}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-sev-safe" />
         </button>
 
-        {/* Overview Map Light / Dark Mode Toggle Option */}
+        {/* Light / Dark Mode Toggle Option */}
         <div className="h-8 p-0.5 rounded-control bg-zd-surface/90 border border-zd-border flex items-center shadow-sm backdrop-blur">
           <button
             onClick={() => setOpsMode(false)}
@@ -658,12 +558,12 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
 
         {useRealMap && (
           <span className="hidden sm:inline-block text-[11px] font-mono text-zd-dim bg-zd-surface/80 px-2 py-1 rounded border border-zd-border/60 backdrop-blur">
-            Pauri Garhwal · {isOpsMode ? 'Dark' : 'Light'} Basemap · 29.75°N, 78.53°E
+            Pauri Garhwal · {isOpsMode ? 'Dark' : 'Light'} Basemap · {reports.length} Field Pins
           </span>
         )}
       </div>
 
-      {/* 4. Map Zoom & Navigation Controls (Bottom Right) */}
+      {/* 4. Zoom & Navigation Controls */}
       <div className="absolute bottom-5 right-5 z-20 flex flex-col gap-1.5">
         <button
           onClick={() => {
@@ -697,7 +597,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           <button
             onClick={() => {
               if (mapRef.current) {
-                mapRef.current.flyTo({ center: pauriCenter, zoom: 11.8, pitch: 24, bearing: -8, duration: 800 });
+                mapRef.current.flyTo({ center: pauriCenter, zoom: 12.0, pitch: 20, bearing: -6, duration: 800 });
               }
             }}
             className="w-8 h-8 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-muted hover:text-zd-accent flex items-center justify-center transition-colors shadow-sm"

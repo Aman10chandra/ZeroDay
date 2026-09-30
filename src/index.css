@@ -1,39 +1,38 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --bg-base: #F6F5F1;
-    --bg-surface: #ECE9E2;
-    --bg-raised: #E2DED6;
-    --bg-hover: #DAD5CB;
-    --border-color: rgba(0, 0, 0, 0.08);
-    --border-focus: rgba(0, 0, 0, 0.22);
-    --text-ink: #12181D;
-    --text-muted: #58656E;
-    --text-dim: #8B97A0;
-    --accent: #3DAFA5;
-    --accent-dim: rgba(61, 175, 165, 0.12);
+    --bg-base: 246 245 241;
+    --bg-surface: 236 233 226;
+    --bg-raised: 226 222 214;
+    --bg-hover: 218 213 203;
+    --border-color: 18 24 29;
+    --border-focus: 18 24 29;
+    --text-ink: 18 24 29;
+    --text-muted: 88 101 110;
+    --text-dim: 139 151 160;
+    --accent: 61 175 165;
   }
 
   .dark {
-    --bg-base: #0A0F13;
-    --bg-surface: #10161B;
-    --bg-raised: #161E25;
-    --bg-hover: #1D2730;
-    --border-color: rgba(255, 255, 255, 0.07);
-    --border-focus: rgba(255, 255, 255, 0.20);
-    --text-ink: #EAF0F3;
-    --text-muted: #93A1AC;
-    --text-dim: #5E6C77;
-    --accent: #5CC8BE;
-    --accent-dim: rgba(92, 200, 190, 0.14);
+    --bg-base: 10 15 19;
+    --bg-surface: 16 22 27;
+    --bg-raised: 22 30 37;
+    --bg-hover: 29 39 48;
+    --border-color: 255 255 255;
+    --border-focus: 255 255 255;
+    --text-ink: 234 240 243;
+    --text-muted: 147 161 172;
+    --text-dim: 94 108 119;
+    --accent: 92 200 190;
   }
 
   body {
-    background-color: var(--bg-base);
-    color: var(--text-ink);
+    background-color: rgb(var(--bg-base));
+    color: rgb(var(--text-ink));
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 

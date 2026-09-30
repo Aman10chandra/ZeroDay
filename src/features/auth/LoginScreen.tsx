@@ -112,11 +112,11 @@ export const LoginScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Primary Action Button */}
+            {/* Primary Action Button (40px for primary form buttons, dark text #06201E) */}
             <button
               type="submit"
               disabled={isLoading || !identifier}
-              className="w-full h-9 rounded-[6px] bg-zd-accent hover:bg-zd-accent-hover text-zd-base font-sans font-semibold text-xs flex items-center justify-center gap-2 active:translate-y-[1px] transition-all disabled:opacity-50 mt-2"
+              className="w-full h-10 rounded-control bg-zd-accent hover:opacity-95 text-[#06201E] font-sans font-semibold text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-zd-accent/40"
             >
               {isLoading ? (
                 <span className="font-mono text-xs">Authenticating...</span>

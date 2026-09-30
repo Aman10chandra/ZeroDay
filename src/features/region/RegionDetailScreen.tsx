@@ -147,9 +147,11 @@ export const RegionDetailScreen: React.FC = () => {
             <h1 className="font-sans font-semibold text-2xl text-zd-text tracking-tight">
               {ward.name}
             </h1>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-sev-critical-dim border border-sev-critical/30 text-sev-critical">
+            <div className="flex items-center gap-1.5">
               <SeverityDot level={ward.riskLevel} />
-              <span className="font-sans text-xs font-semibold capitalize">{ward.riskLevel}</span>
+              <span className="font-sans text-xs text-zd-muted capitalize">{ward.riskLevel} severity</span>
+              <span className="text-zd-dim">·</span>
+              <span className="font-mono text-xs text-zd-dim">{ward.code}</span>
             </div>
           </div>
 
@@ -237,7 +239,7 @@ export const RegionDetailScreen: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="font-sans text-sm font-semibold text-zd-text">
-                  Precipitation & Inflow Trend
+                  Precipitation & inflow trend
                 </h3>
                 <p className="font-sans text-xs text-zd-muted mt-0.5">
                   Peak hourly rainfall intensity against saturated mountain catchment
@@ -351,7 +353,7 @@ export const RegionDetailScreen: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Metric 1: Rainfall */}
             <div className="p-6 bg-zd-surface border border-zd-border rounded-panel">
-              <span className="font-sans text-xs text-zd-muted block mb-2">Rainfall (Peak 1h)</span>
+              <span className="font-sans text-xs text-zd-muted block mb-2">Rainfall (peak 1h)</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-4xl font-light text-zd-text">{ward.rainfall1h}</span>
                 <span className="font-sans text-xs text-zd-muted">mm/hr</span>
@@ -364,7 +366,7 @@ export const RegionDetailScreen: React.FC = () => {
 
             {/* Metric 2: Soil Saturation */}
             <div className="p-6 bg-zd-surface border border-zd-border rounded-panel">
-              <span className="font-sans text-xs text-zd-muted block mb-2">Soil Saturation</span>
+              <span className="font-sans text-xs text-zd-muted block mb-2">Soil saturation</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-4xl font-light text-zd-text">{ward.soilSaturationPct}</span>
                 <span className="font-sans text-xs text-zd-muted">%</span>
@@ -378,7 +380,7 @@ export const RegionDetailScreen: React.FC = () => {
             {/* Metric 3: River Level with animated vertical gauge */}
             <div className="p-6 bg-zd-surface border border-zd-border rounded-panel flex items-center justify-between">
               <div>
-                <span className="font-sans text-xs text-zd-muted block mb-2">River Level</span>
+                <span className="font-sans text-xs text-zd-muted block mb-2">River level</span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono text-4xl font-light text-sev-critical">{ward.riverLevelM}</span>
                   <span className="font-sans text-xs text-zd-muted">m</span>
@@ -402,19 +404,19 @@ export const RegionDetailScreen: React.FC = () => {
                 alt="Rampur Weir CCTV"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-3 left-3 px-2 py-0.5 rounded-[4px] bg-black/75 border border-white/10 font-mono text-[11px] text-white">
+              <div className="absolute top-3 left-3 px-2 py-0.5 rounded-[4px] bg-black/75 border border-zd-border font-mono text-[11px] text-zd-text">
                 CAM-02 · Rampur Weir #3
               </div>
-              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-black/75 border border-white/10 font-mono text-[10px] text-sev-normal">
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-black/75 border border-zd-border font-sans text-[10px] text-sev-normal">
                 <span className="w-1.5 h-1.5 rounded-full bg-sev-normal animate-pulse" />
-                <span>LIVE</span>
+                <span>Live</span>
               </div>
             </div>
 
             <div className="p-4 flex items-center justify-between border-t border-zd-border">
               <div>
-                <span className="font-sans text-xs text-zd-muted block">Current Gate Aperture</span>
-                <span className="font-mono text-sm font-semibold text-zd-text">{ward.sluiceAperturePct}% Open</span>
+                <span className="font-sans text-xs text-zd-muted block">Current gate aperture</span>
+                <span className="font-mono text-sm font-semibold text-zd-text">{ward.sluiceAperturePct}% open</span>
               </div>
 
               <Button
@@ -432,7 +434,7 @@ export const RegionDetailScreen: React.FC = () => {
           {/* Compact Sensors List (5 rows) */}
           <div className="bg-zd-surface border border-zd-border rounded-panel overflow-hidden shadow-sm">
             <div className="p-4 border-b border-zd-border flex items-center justify-between">
-              <h4 className="font-sans text-xs font-semibold text-zd-text">Sensors in Sector</h4>
+              <h4 className="font-sans text-xs font-semibold text-zd-text">Sensors in sector</h4>
               <span className="font-mono text-[11px] text-zd-dim">5 reporting</span>
             </div>
 

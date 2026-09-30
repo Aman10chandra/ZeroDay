@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { Drawer } from '../../components/ui/Drawer';
 import { Modal } from '../../components/ui/Modal';
 import { SeverityDot } from '../../components/ui/SeverityDot';
+import { ReportsMap } from './ReportsMap';
 import { 
   Filter, 
   Plus, 
@@ -34,7 +35,7 @@ export const CommunityReportsScreen: React.FC = () => {
     showToast 
   } = useStore();
 
-  const [selectedReportId, setSelectedReportId] = useState<string | null>(reports[0]?.id || null);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -97,6 +98,8 @@ export const CommunityReportsScreen: React.FC = () => {
       reporterContact: '+91-98111-22334',
       urgency: 'high',
       mediaUrl: category === 'river_surge' ? '/assets/flooded-road.webp' : '/assets/landslide-scar.webp',
+      lat: (targetWard?.lat || 29.7468) + (Math.random() - 0.5) * 0.008,
+      lng: (targetWard?.lng || 78.5292) + (Math.random() - 0.5) * 0.008,
     });
 
     setDescription('');
@@ -221,62 +224,14 @@ export const CommunityReportsScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: The Map with Pins (Focal Point) */}
+      {/* Center: Real Map with Field Report Pins & Light/Dark Mode */}
       <div className="flex-1 relative overflow-hidden bg-zd-base">
-        <svg className="w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <pattern id="reportGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#reportGrid)" />
-
-          {/* Contour and river elements */}
-          <path d="M 60 540 C 240 500, 360 420, 500 300 C 620 200, 720 160, 800 120" fill="none" stroke="#214050" strokeWidth="12" opacity="0.5" />
-          <path d="M 60 540 C 240 500, 360 420, 500 300 C 620 200, 720 160, 800 120" fill="none" stroke="#5CC8BE" strokeWidth="2" strokeDasharray="6 4" opacity="0.6" />
-
-          {/* Map Pins for each report */}
-          {reports.map((rep, idx) => {
-            const x = 200 + (idx * 130) % 500;
-            const y = 160 + (idx * 90) % 360;
-            const isSelected = selectedReportId === rep.id;
-
-            return (
-              <g
-                key={rep.id}
-                transform={`translate(${x}, ${y})`}
-                onClick={() => setSelectedReportId(rep.id)}
-                className="cursor-pointer"
-              >
-                <circle
-                  r={isSelected ? 10 : 7}
-                  fill={rep.status === 'verified' ? '#4CB782' : '#E8843A'}
-                  stroke="#0A0F13"
-                  strokeWidth="2"
-                  className="transition-all"
-                />
-                {isSelected && (
-                  <circle r="18" fill="none" stroke="#5CC8BE" strokeWidth="1" className="animate-ping" />
-                )}
-                <text
-                  x="14"
-                  y="4"
-                  fill="#EAF0F3"
-                  fontSize="11"
-                  fontFamily="sans-serif"
-                  fontWeight={isSelected ? 'bold' : 'normal'}
-                >
-                  {rep.category.replace('_', ' ')}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Map Overlay Indicator */}
-        <div className="absolute bottom-4 left-4 font-mono text-[10px] text-zd-dim bg-zd-surface/80 px-2 py-0.5 rounded border border-zd-border">
-          Active Field Pins: {filteredReports.length}
-        </div>
+        <ReportsMap
+          reports={filteredReports}
+          selectedReportId={selectedReportId}
+          onSelectReport={(id) => setSelectedReportId(id)}
+          wards={wards}
+        />
       </div>
 
       {/* Right Drawer for Selected Report */}
@@ -297,7 +252,7 @@ export const CommunityReportsScreen: React.FC = () => {
                   alt="Field Observation"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-2 right-2 px-2 py-0.5 rounded-[4px] bg-black/75 border border-white/10 font-mono text-[10px] text-white">
+                <div className="absolute top-2 right-2 px-2 py-0.5 rounded-[4px] bg-black/75 border border-zd-border font-mono text-[10px] text-zd-text">
                   GEO-STAMPED
                 </div>
               </div>

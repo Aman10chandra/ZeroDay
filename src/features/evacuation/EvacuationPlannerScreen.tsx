@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/ui/Button';
 import { Drawer } from '../../components/ui/Drawer';
@@ -297,10 +298,9 @@ export const EvacuationPlannerScreen: React.FC = () => {
                 fill="#FFFFFF"
                 fontSize="11"
                 fontFamily="sans-serif"
-                fontWeight="600"
-                letterSpacing="0.04em"
+                fontWeight="500"
               >
-                ⚠️ 36° SCARP RUPTURE HAZARD
+                ⚠️ 36° scarp rupture hazard
               </text>
             </g>
           )}
@@ -315,10 +315,10 @@ export const EvacuationPlannerScreen: React.FC = () => {
             opacity="0.5"
           />
 
-          {/* MAIN ESCAPE CORRIDOR: High Ridge Mountain Path */}
+          {/* MAIN ESCAPE CORRIDOR: High Ridge Mountain Path (Cleanly rerouted to north, never crossing the hazard polygon) */}
           {/* Underglow halo */}
           <path
-            d="M 280 640 C 360 520, 500 460, 680 390 C 820 330, 960 290, 1140 220"
+            d="M 280 640 C 350 480, 460 320, 640 280 C 800 240, 960 230, 1140 220"
             fill="none"
             stroke="#5CC8BE"
             strokeWidth="10"
@@ -327,15 +327,15 @@ export const EvacuationPlannerScreen: React.FC = () => {
           />
           {/* Primary Solid Background Track */}
           <path
-            d="M 280 640 C 360 520, 500 460, 680 390 C 820 330, 960 290, 1140 220"
+            d="M 280 640 C 350 480, 460 320, 640 280 C 800 240, 960 230, 1140 220"
             fill="none"
             stroke="rgba(10, 15, 19, 0.85)"
             strokeWidth="6"
             strokeLinecap="round"
           />
-          {/* Animated Marching Dash Vector */}
+          {/* Animated Marching Dash Vector (4px teal) */}
           <path
-            d="M 280 640 C 360 520, 500 460, 680 390 C 820 330, 960 290, 1140 220"
+            d="M 280 640 C 350 480, 460 320, 640 280 C 800 240, 960 230, 1140 220"
             fill="none"
             stroke="url(#corridorGradient)"
             strokeWidth="4"
@@ -345,30 +345,23 @@ export const EvacuationPlannerScreen: React.FC = () => {
             filter="url(#corridorGlow)"
           />
 
-          {/* Directional Flow Chevrons along Ridge Corridor */}
+          {/* Directional Flow Chevrons along North Ridge Corridor */}
           <g fill="#4CB782" opacity="0.9">
-            {/* Arrow 1 */}
-            <polygon points="410,545 422,538 410,531 414,538" transform="rotate(-36 414 538)" />
-            {/* Arrow 2 */}
-            <polygon points="620,415 632,408 620,401 624,408" transform="rotate(-26 624 408)" />
-            {/* Arrow 3 */}
-            <polygon points="860,325 872,318 860,311 864,318" transform="rotate(-18 864 318)" />
-            {/* Arrow 4 */}
-            <polygon points="1040,262 1052,255 1040,248 1044,255" transform="rotate(-22 1044 255)" />
+            <polygon points="400,405 412,398 400,391 404,398" transform="rotate(-45 404 398)" />
+            <polygon points="620,285 632,278 620,271 624,278" transform="rotate(-18 624 278)" />
+            <polygon points="840,245 852,238 840,231 844,238" transform="rotate(-12 844 238)" />
+            <polygon points="1020,225 1032,218 1020,211 1024,218" transform="rotate(-5 1024 218)" />
           </g>
 
           {/* Mesh Nodes on Path */}
           {layers.meshNodes && (
             <g>
-              {/* Relay 1 */}
-              <circle cx="510" cy="460" r="4" fill="#5CC8BE" />
-              <circle cx="510" cy="460" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
-              {/* Relay 2 */}
-              <circle cx="780" cy="350" r="4" fill="#5CC8BE" />
-              <circle cx="780" cy="350" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
-              {/* Relay 3 */}
-              <circle cx="990" cy="275" r="4" fill="#5CC8BE" />
-              <circle cx="990" cy="275" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
+              <circle cx="480" cy="340" r="4" fill="#5CC8BE" />
+              <circle cx="480" cy="340" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
+              <circle cx="760" cy="260" r="4" fill="#5CC8BE" />
+              <circle cx="760" cy="260" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
+              <circle cx="980" cy="230" r="4" fill="#5CC8BE" />
+              <circle cx="980" cy="230" r="10" fill="none" stroke="#5CC8BE" strokeWidth="1" opacity="0.4" />
             </g>
           )}
         </svg>
@@ -443,16 +436,16 @@ export const EvacuationPlannerScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* WAYPOINT B: Bhelupur Saddle Checkpoint */}
+        {/* WAYPOINT B: North Ridge Saddle Checkpoint */}
         <div 
           className="absolute pointer-events-auto transform -translate-x-1/2 -translate-y-full"
-          style={{ left: '54%', top: '45%' }}
+          style={{ left: '48%', top: '34%' }}
         >
           <div className="group relative flex flex-col items-center">
             <div className="bg-zd-surface/90 backdrop-blur-md border border-zd-border px-2.5 py-1 rounded-panel shadow-modal flex items-center gap-2 transition-transform group-hover:scale-105">
               <Footprints className="w-3 h-3 text-zd-accent" />
               <div>
-                <div className="font-sans font-medium text-[11px] text-zd-text">North Ridge Saddle</div>
+                <div className="font-sans font-medium text-[11px] text-zd-text">North Ridge saddle</div>
                 <div className="font-mono text-[9px] text-zd-dim">Elev. 790m · Clear ridge track</div>
               </div>
             </div>
@@ -468,8 +461,8 @@ export const EvacuationPlannerScreen: React.FC = () => {
         >
           <div 
             onClick={() => {
-              setSelectedShelterId('sh-rampur-school');
               setShelterDrawerOpen(true);
+              setLayersOpen(false);
             }}
             className="group relative flex items-center gap-3 cursor-pointer"
             title="Click to view sanctuary shelter details"
@@ -483,18 +476,22 @@ export const EvacuationPlannerScreen: React.FC = () => {
             </div>
 
             {/* Sanctuary Card Pill */}
-            <div className="bg-zd-surface/95 backdrop-blur-md border-2 border-sev-normal hover:border-sev-normal/80 px-3.5 py-2 rounded-panel shadow-modal flex items-center gap-3 transition-all group-hover:scale-105">
+            <div className="bg-zd-surface/95 backdrop-blur-md border border-sev-normal/70 hover:border-sev-normal px-3.5 py-2 rounded-panel shadow-modal flex items-center gap-3 transition-all group-hover:scale-105">
               <div className="w-7 h-7 rounded-control bg-sev-normal-dim border border-sev-normal flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-4 h-4 text-sev-normal" />
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-sans font-bold text-xs text-zd-text">{selectedShelter.name}</span>
-                  <span className="font-mono text-[9px] text-sev-normal bg-sev-normal-dim px-1.5 py-0.2 rounded font-semibold">SAFE HAVEN</span>
+                  <span className="font-sans font-medium text-xs text-zd-text drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                    {selectedShelter.name}
+                  </span>
+                  <span className="font-mono text-[9px] text-sev-normal bg-sev-normal-dim px-1.5 py-0.2 rounded font-medium">
+                    High ground
+                  </span>
                 </div>
                 <div className="font-mono text-[10px] text-zd-muted flex items-center gap-2 mt-0.5">
-                  <span className="text-sev-normal font-semibold">Elev. {selectedShelter.elevationM}m ASL</span>
+                  <span className="text-sev-normal">Elev. {selectedShelter.elevationM}m ASL</span>
                   <span>·</span>
                   <span>Cap: {selectedShelter.currentOccupancy}/{selectedShelter.capacity}</span>
                 </div>
@@ -516,11 +513,11 @@ export const EvacuationPlannerScreen: React.FC = () => {
             <div className="w-2 h-2 rounded-full bg-sev-normal animate-pulse" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-micro uppercase font-mono tracking-wider text-zd-dim">EVACUATION CORRIDOR</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-sev-normal-dim text-sev-normal rounded font-medium">DISPATCH READY</span>
+                <span className="text-micro font-sans text-zd-dim">Evacuation corridor</span>
+                <span className="text-[10px] font-sans px-1.5 py-0.2 bg-sev-normal-dim text-sev-normal rounded font-medium">Dispatch ready</span>
                 <span className="hidden md:inline font-mono text-[10px] text-zd-dim">· 29°45'11" N · 78°32'04" E</span>
               </div>
-              <h1 className="font-sans font-bold text-sm text-zd-text">Sector 4-B: North Ridge Bypass Corridor</h1>
+              <h1 className="font-sans font-semibold text-sm text-zd-text">Sector 4-B: North Ridge bypass corridor</h1>
             </div>
           </div>
 
@@ -543,41 +540,46 @@ export const EvacuationPlannerScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: GIS Layers & Havens Drawer Button */}
+        {/* Right: GIS Layers & Havens Ghost Button */}
         <div className="pointer-events-auto flex items-center gap-2">
           
-          {/* GIS Layer Menu */}
-          <div className="relative">
-            <button
-              onClick={() => setLayersOpen(!layersOpen)}
-              className={`h-9 px-3 rounded-control border flex items-center gap-2 font-sans text-xs transition-colors shadow-modal ${
-                layersOpen 
-                  ? 'bg-zd-accent text-zd-base border-zd-accent font-semibold' 
-                  : 'bg-zd-surface/90 hover:bg-zd-raised text-zd-muted hover:text-zd-text border-zd-border'
-              }`}
-              title="Toggle Terrain & Hazard Layers"
-            >
-              <Layers className="w-4 h-4" strokeWidth={1.5} />
-              <span className="hidden sm:inline">GIS Layers</span>
-            </button>
-
-            {layersOpen && (
-              <div className="absolute top-11 right-0 w-60 p-2 bg-zd-surface/95 backdrop-blur-md border border-zd-border rounded-panel shadow-popover text-xs font-sans z-50">
-                <span className="text-micro font-mono uppercase tracking-wider text-zd-dim px-2 py-1 block border-b border-zd-border mb-1">
-                  Terrain & Hazard GIS Overlays
+          {/* GIS Layer Menu Popover */}
+          <Popover.Root open={layersOpen} onOpenChange={setLayersOpen}>
+            <Popover.Trigger asChild>
+              <button
+                className={`h-9 px-3 rounded-control border flex items-center gap-2 font-sans text-xs transition-colors shadow-sm focus:outline-none ${
+                  layersOpen 
+                    ? 'bg-zd-raised text-zd-accent border-zd-accent' 
+                    : 'bg-zd-surface/90 hover:bg-zd-raised text-zd-muted hover:text-zd-text border-zd-border'
+                }`}
+                title="Toggle terrain & hazard layers"
+              >
+                <Layers className="w-4 h-4" strokeWidth={1.5} />
+                <span className="hidden sm:inline">Layers</span>
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                side="bottom"
+                align="end"
+                sideOffset={8}
+                className="z-50 w-60 p-2 bg-zd-surface border border-zd-border rounded-panel shadow-popover text-xs font-sans animate-in fade-in-0 zoom-in-95"
+              >
+                <span className="text-[11px] font-sans text-zd-dim px-2 py-1 block border-b border-zd-border mb-1">
+                  Terrain & hazard GIS overlays
                 </span>
                 <div className="space-y-0.5">
                   {[
-                    { key: 'satellite' as const, label: 'Shaded Relief Satellite Base' },
-                    { key: 'slope' as const, label: '36° Rupture Slope Hazard' },
-                    { key: 'waterIndex' as const, label: 'NDWI Gorge Inundation Zone' },
-                    { key: 'contours' as const, label: 'Topographic Contours (25m)' },
-                    { key: 'meshNodes' as const, label: 'Offline BLE Mesh Relay Nodes' },
+                    { key: 'satellite' as const, label: 'Shaded relief satellite base' },
+                    { key: 'slope' as const, label: '36° rupture slope hazard' },
+                    { key: 'waterIndex' as const, label: 'NDWI gorge inundation zone' },
+                    { key: 'contours' as const, label: 'Topographic contours (25m)' },
+                    { key: 'meshNodes' as const, label: 'Offline BLE mesh relay nodes' },
                   ].map(item => (
                     <button
                       key={item.key}
                       onClick={() => toggleLayer(item.key)}
-                      className="w-full h-8 px-2 rounded-[4px] flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors"
+                      className="w-full h-8 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors focus:outline-none"
                     >
                       <span className="text-xs">{item.label}</span>
                       {layers[item.key] ? (
@@ -588,26 +590,30 @@ export const EvacuationPlannerScreen: React.FC = () => {
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
 
           {/* Turn-by-Turn Steps Modal Trigger */}
           <button
             onClick={() => setRouteStepsModalOpen(true)}
-            className="h-9 px-3 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-text flex items-center gap-1.5 font-sans text-xs shadow-modal transition-colors"
+            className="h-9 px-3 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-text flex items-center gap-1.5 font-sans text-xs shadow-sm transition-colors"
           >
             <Info className="w-3.5 h-3.5 text-zd-accent" />
-            <span className="hidden sm:inline">Route Steps</span>
+            <span className="hidden sm:inline">Route steps</span>
           </button>
 
-          {/* Havens Drawer Trigger */}
+          {/* Havens Drawer Ghost Button with Count */}
           <button
-            onClick={() => setShelterDrawerOpen(true)}
-            className="h-9 px-3.5 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-text flex items-center gap-2 font-sans text-xs shadow-modal transition-colors"
+            onClick={() => {
+              setShelterDrawerOpen(true);
+              setLayersOpen(false);
+            }}
+            className="h-9 px-3 rounded-control hover:bg-zd-raised text-zd-muted hover:text-zd-text flex items-center gap-1.5 font-sans text-xs transition-colors"
+            title="Designated emergency shelters"
           >
             <MapPin className="w-3.5 h-3.5 text-sev-normal" strokeWidth={1.5} />
-            <span className="font-medium">Designated Havens ({shelters.length})</span>
+            <span>Havens ({shelters.length})</span>
           </button>
         </div>
 
@@ -618,16 +624,16 @@ export const EvacuationPlannerScreen: React.FC = () => {
         <div className="bg-zd-surface/95 backdrop-blur-xl border border-zd-border/90 rounded-panel px-4 py-2.5 sm:px-6 sm:py-3.5 shadow-modal flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
           
           {/* Destination & Route Specs */}
-          <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+          <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto min-w-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-control bg-sev-normal-dim border border-sev-normal/50 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-sev-normal" />
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-sans font-bold text-xs sm:text-sm text-zd-text truncate">{selectedShelter.name}</span>
-                <span className="font-mono text-[9px] sm:text-[10px] text-sev-normal bg-sev-normal-dim px-1.5 py-0.5 rounded font-semibold shrink-0">
-                  HAVEN {selectedShelter.elevationM}m
+                <span className="font-sans font-semibold text-xs sm:text-sm text-zd-text truncate">{selectedShelter.name}</span>
+                <span className="font-mono text-[9px] sm:text-[10px] text-sev-normal bg-sev-normal-dim px-1.5 py-0.5 rounded font-medium shrink-0">
+                  Haven {selectedShelter.elevationM}m
                 </span>
               </div>
               <p className="font-mono text-[11px] sm:text-xs text-zd-muted flex items-center gap-1.5 sm:gap-2 mt-0.5">
@@ -635,7 +641,7 @@ export const EvacuationPlannerScreen: React.FC = () => {
                 <span className="text-zd-dim">·</span>
                 <span>24 min walk</span>
                 <span className="text-zd-dim">·</span>
-                <span className="text-sev-normal font-sans font-medium truncate">Bypasses bridge & 36° slide</span>
+                <span className="text-sev-normal font-sans font-normal truncate">Bypasses bridge & 36° slide</span>
               </p>
             </div>
           </div>
@@ -653,15 +659,14 @@ export const EvacuationPlannerScreen: React.FC = () => {
             <Button
               variant="primary"
               onClick={() => setDispatchModalOpen(true)}
-              className="h-8 sm:h-9 px-3 sm:px-4 font-sans text-xs font-semibold gap-1.5 sm:gap-2 shadow-lg"
+              className="h-8 sm:h-9 px-3 sm:px-4 font-sans text-xs font-semibold gap-1.5 sm:gap-2 shadow-sm"
             >
               <Send className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Transmit Route Instructions</span>
-              <span className="sm:hidden">Transmit Route</span>
+              <span className="hidden sm:inline">Transmit route instructions</span>
+              <span className="sm:hidden">Transmit route</span>
               <span className="font-mono text-[10px] bg-black/20 px-1 py-0.5 rounded text-white/90">1,240</span>
             </Button>
           </div>
-
         </div>
       </div>
 
@@ -686,14 +691,14 @@ export const EvacuationPlannerScreen: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-zd-base via-zd-base/30 to-transparent" />
               <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
                 <div>
-                  <span className="text-[10px] font-mono text-sev-normal font-semibold uppercase tracking-wider block">
-                    Designated Primary Haven
+                  <span className="text-[11px] font-sans text-sev-normal font-medium block">
+                    Designated primary haven
                   </span>
-                  <span className="font-bold text-sm text-zd-text block">Govt. Primary School, Rampur</span>
-                  <span className="text-xs font-mono text-zd-muted">Elev. 890m · Granite Bedrock</span>
+                  <span className="font-semibold text-sm text-zd-text block">Govt. Primary School, Rampur</span>
+                  <span className="text-xs font-mono text-zd-muted">Elev. 890m · Granite bedrock</span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-sev-normal text-zd-base font-bold text-[10px] font-mono">
-                  ACTIVE
+                <span className="px-2 py-0.5 rounded bg-sev-normal text-zd-base font-semibold text-[10px] font-sans">
+                  Active
                 </span>
               </div>
             </div>
@@ -717,8 +722,8 @@ export const EvacuationPlannerScreen: React.FC = () => {
 
             {/* List of Shelters */}
             <div className="space-y-2">
-              <span className="text-micro font-mono uppercase tracking-wider text-zd-dim block">
-                All Available District Havens
+              <span className="text-xs font-sans text-zd-dim block">
+                All available district havens
               </span>
 
               <div className="divide-y divide-zd-border border border-zd-border rounded-panel bg-zd-base/60 overflow-hidden">

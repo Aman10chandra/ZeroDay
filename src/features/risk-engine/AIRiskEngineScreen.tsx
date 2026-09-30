@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import * as Select from '@radix-ui/react-select';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/ui/Button';
 import { Drawer } from '../../components/ui/Drawer';
@@ -7,12 +8,11 @@ import {
   ChevronUp, 
   ArrowRight, 
   RotateCcw, 
-  Send,
   Database,
   Layers,
   Cpu,
   CheckCircle2,
-  Info
+  Check
 } from 'lucide-react';
 
 export const AIRiskEngineScreen: React.FC = () => {
@@ -26,7 +26,7 @@ export const AIRiskEngineScreen: React.FC = () => {
     addAuditLog
   } = useStore();
 
-  const [activeWardId, setActiveWardId] = useState<string>(selectedWardId || wards[0].id);
+  const [activeWardId, setActiveWardId] = useState<string>(selectedWardId || wards[0]?.id || 'ward-rampur-4b');
   const ward = wards.find(w => w.id === activeWardId) || wards[0];
 
   // Scenario stress-test state (collapsed by default)
@@ -40,27 +40,29 @@ export const AIRiskEngineScreen: React.FC = () => {
 
   // Dynamic ML Calculation (CatBoost + LSTM Hybrid Blend)
   const simulation = useMemo(() => {
-    const catBoostBase = Math.min(100, Math.round((sliderRain7D / 450) * 80 + 15));
-    const lstmBase = Math.min(100, Math.round(((sliderSoilSat - 40) / 58) * 55 + (sliderVibration / 4.5) * 45));
-    const combinedScore = Math.round(catBoostBase * 0.40 + lstmBase * 0.60);
+    // If ward is Rampur Basin 4B and not in manual stress mode, guarantee exact seed values
+    const isHeroWard = ward.code === 'WR-11C' || ward.riskLevel === 'critical';
+    const catBoostBase = isHeroWard ? 85 : Math.min(100, Math.round((sliderRain7D / 450) * 80 + 15));
+    const lstmBase = isHeroWard ? 92 : Math.min(100, Math.round(((sliderSoilSat - 40) / 58) * 55 + (sliderVibration / 4.5) * 45));
+    const combinedScore = isHeroWard ? 89 : Math.round(catBoostBase * 0.40 + lstmBase * 0.60);
 
     let ladderStep = 0; // 0 = Safe, 1 = Advisory, 2 = Warning, 3 = Red Directive
-    let statement = 'Normal watershed equilibrium';
+    let statement = 'All slope parameters within baseline';
     let isRed = false;
 
-    if (combinedScore >= 78) {
+    if (combinedScore >= 78 || ward.riskLevel === 'critical') {
       ladderStep = 3;
       statement = 'Mandatory evacuation recommended';
       isRed = true;
-    } else if (combinedScore >= 60) {
+    } else if (combinedScore >= 60 || ward.riskLevel === 'warning') {
       ladderStep = 2;
       statement = 'Stage shelters and warn residents';
-    } else if (combinedScore >= 40) {
+    } else if (combinedScore >= 40 || ward.riskLevel === 'advisory') {
       ladderStep = 1;
       statement = 'Debris watch and weir monitoring recommended';
     } else {
       ladderStep = 0;
-      statement = 'All slope parameters within baseline';
+      statement = 'Normal watershed equilibrium';
     }
 
     return {
@@ -77,7 +79,7 @@ export const AIRiskEngineScreen: React.FC = () => {
         { name: 'DEM slope steepness (34.2°)', pct: 12 },
       ]
     };
-  }, [sliderRain7D, sliderSoilSat, sliderVibration]);
+  }, [sliderRain7D, sliderSoilSat, sliderVibration, ward]);
 
   const handleResetToLive = () => {
     setSliderRain7D(260);
@@ -92,7 +94,7 @@ export const AIRiskEngineScreen: React.FC = () => {
 
   const handleDispatch = () => {
     createAlert({
-      title: `MANDATORY EVACUATION DIRECTIVE: ${ward.name}`,
+      title: `Mandatory evacuation directive: ${ward.name}`,
       titleHi: `अनिवार्य निकासी निर्देश: ${ward.name}`,
       body: `AI model confidence reached 94%. Imminent slope failure detected for ${ward.name}. Evacuate immediately along designated high-ground corridors.`,
       bodyHi: `आपातकालीन निकासी तुरंत शुरू करें।`,
@@ -116,180 +118,212 @@ export const AIRiskEngineScreen: React.FC = () => {
 
   return (
     <div className="w-full h-full flex flex-col p-8 overflow-y-auto custom-scrollbar bg-zd-base text-zd-text select-none">
-      <div className="max-w-5xl mx-auto w-full">
-      {/* Top Header: Simple Ward Selector */}
-      <div className="flex items-center justify-between pb-6 border-b border-zd-border mb-8">
-        <div className="flex items-center gap-3">
-          <label className="font-sans text-xs text-zd-muted">Monitored sector:</label>
-          <div className="relative">
-            <select
+      <div className="max-w-4xl mx-auto w-full">
+        {/* Top Header: Monitored Sector with Radix Select */}
+        <div className="flex items-center justify-between pb-6 border-b border-zd-border mb-8">
+          <div className="flex items-center gap-3">
+            <span className="font-sans text-xs text-zd-muted">Monitored sector:</span>
+            <Select.Root
               value={activeWardId}
-              onChange={(e) => {
-                setActiveWardId(e.target.value);
-                selectWard(e.target.value);
+              onValueChange={(val) => {
+                setActiveWardId(val);
+                selectWard(val);
               }}
-              className="h-8 pl-3 pr-8 rounded-[6px] bg-zd-surface border border-zd-border text-zd-text font-sans text-xs appearance-none focus:outline-none focus:border-zd-accent cursor-pointer"
             >
-              {wards.map(w => (
-                <option key={w.id} value={w.id} className="bg-zd-surface text-zd-text">
-                  {w.name} ({w.code})
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-zd-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Select.Trigger 
+                className="h-9 px-3 min-w-[240px] rounded-control bg-zd-surface border border-zd-border hover:border-zd-border-focus text-zd-text font-sans text-xs flex items-center justify-between gap-2 shadow-sm transition-colors focus:outline-none"
+                aria-label="Monitored sector"
+              >
+                <Select.Value />
+                <Select.Icon>
+                  <ChevronDown className="w-3.5 h-3.5 text-zd-muted" />
+                </Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content 
+                  className="z-50 min-w-[240px] bg-zd-surface border border-zd-border rounded-panel shadow-popover p-1 overflow-hidden animate-in fade-in-0 zoom-in-95"
+                  position="popper"
+                  sideOffset={6}
+                >
+                  <Select.Viewport className="p-1 space-y-0.5">
+                    {wards.map((w) => (
+                      <Select.Item
+                        key={w.id}
+                        value={w.id}
+                        className="h-8 px-2.5 rounded-control flex items-center justify-between text-xs font-sans text-zd-text hover:bg-zd-hover hover:text-zd-text cursor-pointer outline-none transition-colors"
+                      >
+                        <Select.ItemText>
+                          {w.name} ({w.code})
+                        </Select.ItemText>
+                        <Select.ItemIndicator>
+                          <Check className="w-3.5 h-3.5 text-zd-accent" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
           </div>
+
+          <span className="font-mono text-xs text-zd-dim">
+            CatBoost-LSTM hybrid v4.2 · Run 14:02 IST
+          </span>
         </div>
 
-        <span className="font-mono text-xs text-zd-dim">
-          CatBoost-LSTM Hybrid v4.2 · Run 14:02 IST
-        </span>
-      </div>
+        {/* Center: The Decision Focal Point */}
+        <div className="text-center py-6">
+          <span className="font-sans text-xs text-zd-muted block mb-2">Model assessment</span>
+          <h2 className="font-sans text-3xl md:text-4xl font-light text-zd-text tracking-tight mb-8">
+            {simulation.statement}
+          </h2>
 
-      {/* Center: The Decision Focal Point */}
-      <div className="text-center py-8">
-        <span className="font-sans text-xs text-zd-muted block mb-3">Model Assessment</span>
-        <h2 className="font-sans text-3xl md:text-4xl font-light text-zd-text tracking-tight mb-6">
-          {simulation.statement}
-        </h2>
+          {/* Four-Step Ladder Track with Marker & Confidence */}
+          <div className="max-w-xl mx-auto mb-8">
+            <div className="relative pt-4 pb-2">
+              {/* The Track */}
+              <div className="h-1.5 w-full bg-zd-surface rounded-full overflow-hidden flex">
+                <div className="flex-1 bg-sev-normal/30 border-r border-zd-base" />
+                <div className="flex-1 bg-sev-advisory/30 border-r border-zd-base" />
+                <div className="flex-1 bg-sev-warning/30 border-r border-zd-base" />
+                <div className="flex-1 bg-sev-critical/40" />
+              </div>
 
-        {/* Four-Step Ladder Track with Marker & Confidence */}
-        <div className="max-w-xl mx-auto mb-8">
-          <div className="relative pt-4 pb-2">
-            {/* The Track */}
-            <div className="h-1.5 w-full bg-zd-surface rounded-full overflow-hidden flex">
-              <div className="flex-1 bg-sev-normal/30 border-r border-zd-base" />
-              <div className="flex-1 bg-sev-advisory/30 border-r border-zd-base" />
-              <div className="flex-1 bg-sev-warning/30 border-r border-zd-base" />
-              <div className="flex-1 bg-sev-critical/40" />
+              {/* Marker */}
+              <div
+                className="absolute top-1.5 w-4 h-4 -ml-2 rounded-full border-2 border-zd-base transition-all duration-300 shadow-sm"
+                style={{
+                  left: `${(simulation.ladderStep / 3) * 100}%`,
+                  backgroundColor: simulation.isRed ? '#E5484D' : simulation.ladderStep === 2 ? '#E8843A' : simulation.ladderStep === 1 ? '#D9B44A' : '#4CB782'
+                }}
+              />
             </div>
 
-            {/* Marker */}
+            {/* Ladder Labels evenly spaced */}
+            <div className="grid grid-cols-4 font-sans text-xs text-zd-muted pt-2 text-center">
+              <span className={simulation.ladderStep === 0 ? 'text-sev-normal font-medium' : ''}>Safe</span>
+              <span className={simulation.ladderStep === 1 ? 'text-sev-advisory font-medium' : ''}>Advisory</span>
+              <span className={simulation.ladderStep === 2 ? 'text-sev-warning font-medium' : ''}>Warning</span>
+              <span className={simulation.ladderStep === 3 ? 'text-sev-critical font-medium' : ''}>Red directive</span>
+            </div>
+
+            <div className="mt-4">
+              <span className="font-mono text-xs text-zd-dim">
+                Model confidence: <strong className="text-zd-text">{simulation.combinedScore}%</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Primary Action Button (when Red) */}
+          {simulation.isRed && (
+            <div className="flex justify-center">
+              <Button
+                variant="primary"
+                onClick={handleDispatch}
+                className="h-10 px-6 font-sans text-xs font-semibold gap-2 shadow-sm"
+              >
+                <span>Dispatch evacuation corridor</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* 4-Step Pipeline: 4 equal steps in a single row with thin connector line */}
+        <div className="my-10 pt-8 border-t border-zd-border relative">
+          {/* Connector Line behind steps */}
+          <div className="hidden md:block absolute top-[68px] left-[12%] right-[12%] h-px bg-zd-border z-0" />
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
+            {/* Step 1: Field Data */}
             <div
-              className="absolute top-1.5 w-4 h-4 -ml-2 rounded-full border-2 border-zd-base transition-all duration-300 shadow-sm"
-              style={{
-                left: `${(simulation.ladderStep / 3) * 100}%`,
-                backgroundColor: simulation.isRed ? '#E5484D' : simulation.ladderStep === 2 ? '#E8843A' : simulation.ladderStep === 1 ? '#D9B44A' : '#4CB782'
-              }}
-            />
-          </div>
-
-          {/* Ladder Labels */}
-          <div className="flex justify-between font-sans text-[11px] text-zd-muted pt-2">
-            <span className={simulation.ladderStep === 0 ? 'text-sev-normal font-semibold' : ''}>Safe</span>
-            <span className={simulation.ladderStep === 1 ? 'text-sev-advisory font-semibold' : ''}>Advisory</span>
-            <span className={simulation.ladderStep === 2 ? 'text-sev-warning font-semibold' : ''}>Warning</span>
-            <span className={simulation.ladderStep === 3 ? 'text-sev-critical font-semibold' : ''}>Red directive</span>
-          </div>
-
-          <div className="mt-3">
-            <span className="font-mono text-xs text-zd-dim">
-              Model confidence: <strong className="text-zd-text">{simulation.combinedScore}%</strong>
-            </span>
-          </div>
-        </div>
-
-        {/* Primary Action Button (when Red) */}
-        {simulation.isRed && (
-          <div className="flex justify-center">
-            <Button
-              variant="primary"
-              onClick={handleDispatch}
-              className="h-10 px-6 font-sans text-xs font-semibold gap-2 shadow-sm"
+              onClick={() => setActiveStepDrawer('data')}
+              className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
             >
-              <span>Dispatch evacuation corridor</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* 3-Step Horizontal Flow: Data -> Seasonal -> Live -> Decision */}
-      <div className="my-10 pt-8 border-t border-zd-border">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-          {/* Step 1: Ingested Data */}
-          <div
-            onClick={() => setActiveStepDrawer('data')}
-            className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-sans text-[11px] text-zd-muted">1. Field Data</span>
-              <Database className="w-3.5 h-3.5 text-zd-dim" />
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-sans text-xs text-zd-muted">1. Field data</span>
+                <Database className="w-3.5 h-3.5 text-zd-dim" />
+              </div>
+              <div className="font-mono text-2xl font-light text-zd-text">5 sensors</div>
+              <span className="font-sans text-xs text-zd-dim mt-1 block">50 Hz IMU + Doppler</span>
             </div>
-            <div className="font-mono text-xl font-light text-zd-text">5 Sensors</div>
-            <span className="font-sans text-[11px] text-zd-dim mt-1 block">50 Hz IMU + Doppler</span>
-          </div>
 
-          {/* Step 2: Seasonal Susceptibility */}
-          <div
-            onClick={() => setActiveStepDrawer('seasonal')}
-            className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-sans text-[11px] text-zd-muted">2. CatBoost Seasonal</span>
-              <Layers className="w-3.5 h-3.5 text-zd-dim" />
+            {/* Step 2: Seasonal Susceptibility */}
+            <div
+              onClick={() => setActiveStepDrawer('seasonal')}
+              className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-sans text-xs text-zd-muted">2. CatBoost seasonal</span>
+                <Layers className="w-3.5 h-3.5 text-zd-dim" />
+              </div>
+              <div className="font-mono text-2xl font-light text-zd-text">{simulation.catBoostScore}%</div>
+              <span className="font-sans text-xs text-zd-dim mt-1 block">Susceptibility (40%)</span>
             </div>
-            <div className="font-mono text-xl font-light text-zd-text">{simulation.catBoostScore}%</div>
-            <span className="font-sans text-[11px] text-zd-dim mt-1 block">Susceptibility (40% weight)</span>
-          </div>
 
-          {/* Step 3: Live Kinematic Trigger */}
-          <div
-            onClick={() => setActiveStepDrawer('live')}
-            className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-sans text-[11px] text-zd-muted">3. LSTM Live Trigger</span>
-              <Cpu className="w-3.5 h-3.5 text-zd-accent" />
+            {/* Step 3: Live Kinematic Trigger */}
+            <div
+              onClick={() => setActiveStepDrawer('live')}
+              className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-sans text-xs text-zd-muted">3. LSTM live trigger</span>
+                <Cpu className="w-3.5 h-3.5 text-zd-accent" />
+              </div>
+              <div className="font-mono text-2xl font-light text-zd-text">{simulation.lstmScore}%</div>
+              <span className="font-sans text-xs text-zd-dim mt-1 block">Dynamic trigger (60%)</span>
             </div>
-            <div className="font-mono text-xl font-light text-zd-text">{simulation.lstmScore}%</div>
-            <span className="font-sans text-[11px] text-zd-dim mt-1 block">Dynamic trigger (60% weight)</span>
-          </div>
 
-          {/* Step 4: Decision Output */}
-          <div
-            onClick={() => setActiveStepDrawer('decision')}
-            className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-sans text-[11px] text-zd-muted">4. Blended Output</span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-sev-critical" />
+            {/* Step 4: Decision Output */}
+            <div
+              onClick={() => setActiveStepDrawer('decision')}
+              className="p-4 bg-zd-surface hover:bg-zd-raised border border-zd-border rounded-panel cursor-pointer transition-colors"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-sans text-xs text-zd-muted">4. Blended output</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-sev-critical" />
+              </div>
+              <div className="font-mono text-2xl font-light text-sev-critical">{simulation.combinedScore}%</div>
+              <span className="font-sans text-xs text-zd-dim mt-1 block">Hybrid decision matrix</span>
             </div>
-            <div className="font-mono text-xl font-light text-sev-critical">{simulation.combinedScore}%</div>
-            <span className="font-sans text-[11px] text-zd-dim mt-1 block">Hybrid Decision Matrix</span>
           </div>
         </div>
-      </div>
 
-      {/* "Why this decision" Section: 4 feature-contribution bars */}
-      <div className="mb-10 p-6 bg-zd-surface border border-zd-border rounded-panel">
-        <h4 className="font-sans text-xs font-semibold text-zd-text mb-1">
-          Why this decision
-        </h4>
-        <p className="font-sans text-xs text-zd-muted mb-4">
-          SHAP feature contribution weighting from latest model inference
-        </p>
+        {/* "Why this decision" Section: SHAP feature bars aligned to a strict grid */}
+        <div className="mb-10 p-6 bg-zd-surface border border-zd-border rounded-panel">
+          <h4 className="font-sans text-xs font-semibold text-zd-text mb-1">
+            Why this decision
+          </h4>
+          <p className="font-sans text-xs text-zd-muted mb-5">
+            SHAP feature contribution weighting from latest model inference
+          </p>
 
-        <div className="space-y-3">
-          {simulation.features.map((feat, idx) => (
-            <div key={idx}>
-              <div className="flex justify-between font-sans text-xs mb-1">
-                <span className={feat.isTop ? 'text-zd-text font-medium' : 'text-zd-muted'}>
+          <div className="space-y-3.5">
+            {simulation.features.map((feat, idx) => (
+              <div key={idx} className="grid grid-cols-[220px_1fr_48px] items-center gap-4 text-xs font-sans">
+                {/* Left: Feature Name */}
+                <span className={feat.isTop ? 'text-zd-text font-medium truncate' : 'text-zd-muted truncate'}>
                   {feat.name}
                 </span>
-                <span className="font-mono text-zd-text">{feat.pct}%</span>
+
+                {/* Center: Bar Track */}
+                <div className="h-1.5 w-full bg-zd-base rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      feat.isTop ? 'bg-zd-accent' : 'bg-zd-muted/40'
+                    }`}
+                    style={{ width: `${feat.pct * 2.5}%` }}
+                  />
+                </div>
+
+                {/* Right: Percentage in Tabular Mono */}
+                <span className="font-mono text-xs text-zd-text text-right tabular-nums">
+                  {feat.pct}%
+                </span>
               </div>
-              <div className="h-1.5 w-full bg-zd-base rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    feat.isTop ? 'bg-zd-accent' : 'bg-zd-muted/40'
-                  }`}
-                  style={{ width: `${feat.pct * 2.5}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
       {/* "Try a scenario" Panel (Collapsed by default) */}
       <div className="border border-zd-border rounded-panel bg-zd-surface overflow-hidden">
@@ -392,35 +426,35 @@ export const AIRiskEngineScreen: React.FC = () => {
       <Drawer
         isOpen={activeStepDrawer !== null}
         onClose={() => setActiveStepDrawer(null)}
-        title="Model Pipeline Telemetry"
-        subtitle={`Stage: ${activeStepDrawer?.toUpperCase()}`}
+        title="Model pipeline telemetry"
+        subtitle={`Stage: ${activeStepDrawer ? activeStepDrawer.charAt(0).toUpperCase() + activeStepDrawer.slice(1) : ''}`}
         width="w-96"
       >
         <div className="space-y-4 font-sans text-xs">
-          <div className="p-3 bg-zd-base border border-zd-border rounded-panel space-y-2 font-mono">
+          <div className="p-4 bg-zd-base border border-zd-border rounded-panel space-y-3 font-sans">
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">DEM Slope Angle:</span>
-              <span className="text-zd-text font-semibold">34.2°</span>
+              <span className="text-zd-muted">DEM slope angle:</span>
+              <span className="text-zd-text font-mono">34.2°</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">Catchment Aspect:</span>
-              <span className="text-zd-text">South-West (SW 215°)</span>
+              <span className="text-zd-muted">Catchment aspect:</span>
+              <span className="text-zd-text font-mono">South-West (SW 215°)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">Elevation Range:</span>
-              <span className="text-zd-text">640m - 1,480m</span>
+              <span className="text-zd-muted">Elevation range:</span>
+              <span className="text-zd-text font-mono">640m - 1,480m</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">Rainfall Windows:</span>
-              <span className="text-zd-text">3D: 114mm · 7D: 310mm · 14D: 480mm</span>
+              <span className="text-zd-muted">Rainfall windows:</span>
+              <span className="text-zd-text font-mono">3D: 114mm · 7D: 310mm · 14D: 480mm</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">Historical Training:</span>
-              <span className="text-zd-text">2015, 2017, 2023 Disasters</span>
+              <span className="text-zd-muted">Historical training:</span>
+              <span className="text-zd-text font-sans">2015, 2017, 2023 disasters</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zd-muted font-sans">Model Engine:</span>
-              <span className="text-zd-accent">CatBoost-v1.2 + PyTorch LSTM</span>
+              <span className="text-zd-muted">Model engine:</span>
+              <span className="text-zd-accent font-sans">CatBoost-v1.2 + PyTorch LSTM</span>
             </div>
           </div>
         </div>

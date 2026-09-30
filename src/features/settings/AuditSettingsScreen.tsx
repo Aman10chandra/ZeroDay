@@ -91,7 +91,7 @@ export const AuditSettingsScreen: React.FC = () => {
       {/* Text-Only Left Sub-Nav (Generous spacing, simple layout) */}
       <div className="w-64 h-full border-r border-zd-border bg-zd-surface/40 p-6 flex flex-col justify-between shrink-0">
         <div>
-          <h2 className="font-sans font-semibold text-xs text-zd-muted uppercase tracking-wider mb-6">
+          <h2 className="font-sans font-semibold text-xs text-zd-muted mb-6">
             Settings
           </h2>
 
