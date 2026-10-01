@@ -279,6 +279,10 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
           map.getCanvas().style.cursor = '';
           onHoverWard(null);
         });
+
+        map.on('zoomend', () => {
+          setZoomLevel(map.getZoom());
+        });
       });
 
       mapRef.current = map;
@@ -373,12 +377,21 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    // 1. Ward Center Tactical Name Badges (Elevated with anchor pin stem to never collide with ground sensor dots)
+    // 1. Ward Center Tactical Name Badges (Smaller pills, declutter on zoom-out, full label on hover)
     if (layers.wards) {
+      const currentZoom = mapInstance.getZoom();
+
       wards.forEach(ward => {
         const isSelected = ward.id === selectedWardId;
         const isCritical = ward.riskLevel === 'critical';
         const isWarning = ward.riskLevel === 'warning';
+        const isTop2 = isCritical || isWarning;
+        
+        // Declutter on zoom-out: show top 2 severities plus selected ward if zoom < 12
+        if (currentZoom < 12 && !isTop2 && !isSelected) {
+          return;
+        }
+
         const color = isCritical ? '#E5484D' : isWarning ? '#E8843A' : ward.riskLevel === 'advisory' ? '#D9B44A' : '#4CB782';
 
         const cardBg = isOpsMode ? 'rgba(10, 15, 19, 0.94)' : 'rgba(255, 255, 255, 0.96)';
@@ -388,44 +401,46 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
             ? '#E5484D' 
             : (isOpsMode ? 'rgba(255, 255, 255, 0.22)' : 'rgba(18, 24, 29, 0.18)');
         const cardTextColor = isOpsMode ? '#FFFFFF' : '#111827';
-        const cardShadow = isOpsMode ? '0 4px 16px rgba(0,0,0,0.7)' : '0 4px 14px rgba(0,0,0,0.15)';
+        const cardShadow = isOpsMode ? '0 2px 10px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.12)';
 
         const displayName = ward.name
           .replace(' Lowlands', '')
           .replace(' Gully', '')
           .replace(' Roadway', '')
-          .replace(' Upper Foothills', ' Foothills');
+          .replace(' Upper Foothills', ' Foothills')
+          .replace(' Basin 4B', ' 4B');
 
         const xOffset = ward.id === 'ward-rampur-4b' ? -8 : ward.id === 'ward-kotdwar-main' ? 8 : 0;
 
         const el = document.createElement('div');
-        el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-110 z-20';
+        el.className = 'group cursor-pointer select-none flex flex-col items-center pointer-events-auto transition-transform hover:scale-105 z-20';
+        el.title = `${ward.name} · Risk: ${ward.riskScore}/100 · ${ward.riskLevel.toUpperCase()}`;
         el.innerHTML = `
           <div style="
             background: ${cardBg};
-            border: 1.5px solid ${cardBorder};
+            border: 1px solid ${cardBorder};
             box-shadow: ${cardShadow};
-            padding: 4px 10px;
+            padding: 2.5px 7px;
             border-radius: 9999px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             white-space: nowrap;
           ">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background-color: ${color}; flex-shrink: 0; ${isCritical ? 'box-shadow: 0 0 8px #E5484D;' : ''}"></span>
-            <span style="font-size: 11px; font-weight: 700; color: ${cardTextColor}; letter-spacing: -0.01em;">${displayName}</span>
-            <span style="font-size: 10px; font-family: monospace; font-weight: 700; padding: 1px 5px; border-radius: 9999px; background: ${color}22; color: ${color};">${ward.riskScore}</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: ${color}; flex-shrink: 0; ${isCritical ? 'box-shadow: 0 0 6px #E5484D;' : ''}"></span>
+            <span style="font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; color: ${cardTextColor}; letter-spacing: -0.01em;">${displayName}</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; font-size: 10px; font-weight: 600; padding: 0.5px 4px; border-radius: 9999px; background: ${color}20; color: ${color};">${ward.riskScore}</span>
           </div>
-          <div style="width: 1.5px; height: 8px; background-color: ${color}; opacity: 0.85;"></div>
-          <div style="width: 5px; height: 5px; border-radius: 50%; background-color: ${color}; margin-top: -2px; border: 1px solid ${isOpsMode ? '#0A0F13' : '#FFFFFF'};"></div>
+          <div style="width: 1px; height: 6px; background-color: ${color}; opacity: 0.75;"></div>
+          <div style="width: 4px; height: 4px; border-radius: 50%; background-color: ${color}; margin-top: -2px; border: 1px solid ${isOpsMode ? '#0A0F13' : '#FFFFFF'};"></div>
         `;
         el.onclick = (e) => {
           e.stopPropagation();
           onSelectWard(ward.id);
         };
 
-        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [xOffset, -3] })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [xOffset, -2] })
           .setLngLat([ward.lng, ward.lat])
           .addTo(mapInstance);
 
@@ -518,7 +533,7 @@ export const OverviewMap: React.FC<OverviewMapProps> = ({
         markersRef.current.push(marker);
       });
     }
-  }, [wards, shelters, sensors, layers.wards, layers.shelters, layers.sensors, selectedWardId, isOpsMode, mapInstance]);
+  }, [wards, shelters, sensors, layers.wards, layers.shelters, layers.sensors, selectedWardId, isOpsMode, mapInstance, zoomLevel]);
 
 
   // Fly to selected ward on map

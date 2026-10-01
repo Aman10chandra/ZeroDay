@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { RescueRequest, WardRegion } from '../../types';
 import { 
   ZoomIn, 
@@ -36,6 +37,7 @@ export const RescueMap: React.FC<RescueMapProps> = ({
 }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [hoveredRequestId, setHoveredRequestId] = useState<string | null>(null);
+  const [controlsOpen, setControlsOpen] = useState(false);
   const [showRescuedPins, setShowRescuedPins] = useState(true);
   const [showWards, setShowWards] = useState(true);
   const [showRivers, setShowRivers] = useState(true);
@@ -214,14 +216,14 @@ export const RescueMap: React.FC<RescueMapProps> = ({
                   fill="url(#dangerHatch)"
                 />
               )}
-              {/* Ward Label */}
+              {/* Ward Label with Collision Avoidance */}
               <text
-                x={center.x}
-                y={center.y - 18}
+                x={ward.id === 'ward-bhelupur' ? center.x - 24 : center.x}
+                y={ward.id === 'ward-bhelupur' ? center.y - 34 : center.y - 18}
                 textAnchor="middle"
                 fill="#C5D3DD"
                 fontSize="11"
-                fontFamily="inherit"
+                fontFamily="'Inter', sans-serif"
                 fontWeight="600"
                 style={{
                   paintOrder: 'stroke fill',
@@ -229,7 +231,7 @@ export const RescueMap: React.FC<RescueMapProps> = ({
                   strokeWidth: '3px',
                 }}
               >
-                {ward.name}
+                {ward.name.replace(' Lowlands', '').replace(' Gully', '').replace(' Roadway', '')}
               </text>
             </g>
           );
@@ -465,57 +467,112 @@ export const RescueMap: React.FC<RescueMapProps> = ({
         </span>
       </div>
 
-      {/* Layer Toggles & Zoom Controls (Bottom Right) */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-end gap-2">
-        {/* Layer Toggles */}
-        <div className="bg-zd-surface/90 backdrop-blur border border-zd-border rounded-control p-1.5 flex flex-col gap-1 shadow-sm text-[11px] font-sans">
-          <button
-            onClick={() => setSatelliteBg(!satelliteBg)}
-            className={clsx(
-              "px-2 py-1 rounded text-left transition-colors flex items-center gap-1.5",
-              satelliteBg ? "bg-zd-raised text-zd-text font-medium" : "text-zd-muted hover:text-zd-text"
-            )}
-          >
-            <span>Topography</span>
-          </button>
-          <button
-            onClick={() => setShowWards(!showWards)}
-            className={clsx(
-              "px-2 py-1 rounded text-left transition-colors flex items-center gap-1.5",
-              showWards ? "bg-zd-raised text-zd-text font-medium" : "text-zd-muted hover:text-zd-text"
-            )}
-          >
-            <span>Wards Boundary</span>
-          </button>
-          <button
-            onClick={() => setShowRivers(!showRivers)}
-            className={clsx(
-              "px-2 py-1 rounded text-left transition-colors flex items-center gap-1.5",
-              showRivers ? "bg-zd-raised text-zd-text font-medium" : "text-zd-muted hover:text-zd-text"
-            )}
-          >
-            <span>River Torrent</span>
-          </button>
-          <button
-            onClick={() => setShowRescuedPins(!showRescuedPins)}
-            className={clsx(
-              "px-2 py-1 rounded text-left transition-colors flex items-center gap-1.5",
-              showRescuedPins ? "bg-zd-raised text-zd-text font-medium" : "text-zd-muted hover:text-zd-text"
-            )}
-          >
-            <span>Rescued Citizens</span>
-          </button>
-        </div>
+      {/* Collapsible Layer & Legend Popover + Zoom Controls (Bottom Right) */}
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+        <Popover.Root open={controlsOpen} onOpenChange={setControlsOpen}>
+          <Popover.Trigger asChild>
+            <button
+              className={clsx(
+                "h-8 px-2.5 rounded-control border flex items-center gap-1.5 font-sans text-xs transition-colors shadow-sm focus:outline-none",
+                controlsOpen 
+                  ? "bg-zd-raised text-zd-accent border-zd-accent" 
+                  : "bg-zd-surface/90 hover:bg-zd-raised text-zd-muted hover:text-zd-text border-zd-border"
+              )}
+              title="Map layers and urgency legend"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Layers & Legend</span>
+            </button>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              side="top"
+              align="end"
+              sideOffset={8}
+              className="z-50 w-60 p-3 bg-zd-surface border border-zd-border rounded-panel shadow-popover text-xs font-sans space-y-3 animate-in fade-in-0 zoom-in-95"
+            >
+              {/* 1. Layers Toggle */}
+              <div>
+                <span className="text-[11px] font-sans text-zd-dim block mb-1.5 font-semibold">
+                  Map layers
+                </span>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setSatelliteBg(!satelliteBg)}
+                    className="w-full h-7 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors"
+                  >
+                    <span>Hillshade topography</span>
+                    <span className={clsx("text-[10px] font-mono", satelliteBg ? "text-zd-accent" : "text-zd-dim")}>
+                      {satelliteBg ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowWards(!showWards)}
+                    className="w-full h-7 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors"
+                  >
+                    <span>Ward boundaries</span>
+                    <span className={clsx("text-[10px] font-mono", showWards ? "text-zd-accent" : "text-zd-dim")}>
+                      {showWards ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowRivers(!showRivers)}
+                    className="w-full h-7 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors"
+                  >
+                    <span>River torrent channels</span>
+                    <span className={clsx("text-[10px] font-mono", showRivers ? "text-zd-accent" : "text-zd-dim")}>
+                      {showRivers ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowRescuedPins(!showRescuedPins)}
+                    className="w-full h-7 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors"
+                  >
+                    <span>Rescued citizens</span>
+                    <span className={clsx("text-[10px] font-mono", showRescuedPins ? "text-zd-accent" : "text-zd-dim")}>
+                      {showRescuedPins ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Beacon Urgency Legend */}
+              <div className="pt-2 border-t border-zd-border/60">
+                <span className="text-[11px] font-sans text-zd-dim block mb-1.5 font-semibold">
+                  Beacon urgency legend
+                </span>
+                <div className="space-y-1.5 text-xs text-zd-muted">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-sev-critical shadow-[0_0_6px_#E5484D] shrink-0" />
+                    <span>Critical / Trapped</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-sev-warning shrink-0" />
+                    <span>Urgent Advisory</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-zd-accent shrink-0" />
+                    <span>Team Dispatched</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-sev-safe shrink-0 shadow-[0_0_6px_#4CB782]" />
+                    <span>Rescued / Safe</span>
+                  </div>
+                </div>
+              </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
 
         {/* Zoom In / Out Buttons */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setZoomLevel(z => Math.min(z + 0.25, 2.5))}
             className="w-8 h-8 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-muted hover:text-zd-text flex items-center justify-center transition-colors shadow-sm"
             title="Zoom in"
             aria-label="Zoom in"
           >
-            <ZoomIn className="w-4 h-4" strokeWidth={1.5} />
+            <ZoomIn className="w-3.5 h-3.5" strokeWidth={1.5} />
           </button>
           <button
             onClick={() => setZoomLevel(z => Math.max(z - 0.25, 0.75))}
@@ -523,29 +580,8 @@ export const RescueMap: React.FC<RescueMapProps> = ({
             title="Zoom out"
             aria-label="Zoom out"
           >
-            <ZoomOut className="w-4 h-4" strokeWidth={1.5} />
+            <ZoomOut className="w-3.5 h-3.5" strokeWidth={1.5} />
           </button>
-        </div>
-      </div>
-
-      {/* Map Legend (Top Right) */}
-      <div className="absolute top-4 right-4 z-20 bg-zd-surface/90 backdrop-blur border border-zd-border rounded-control p-2.5 shadow-sm text-[11px] font-sans flex flex-col gap-1.5">
-        <div className="text-[10px] uppercase font-mono tracking-wider text-zd-dim font-bold">Beacon Urgency</div>
-        <div className="flex items-center gap-2 text-zd-text">
-          <span className="w-2.5 h-2.5 rounded-full bg-sev-critical shadow-[0_0_8px_#E5484D]" />
-          <span>Critical / Trapped</span>
-        </div>
-        <div className="flex items-center gap-2 text-zd-text">
-          <span className="w-2.5 h-2.5 rounded-full bg-sev-warning" />
-          <span>Urgent Advisory</span>
-        </div>
-        <div className="flex items-center gap-2 text-zd-text">
-          <span className="w-2.5 h-2.5 rounded-full bg-zd-accent" />
-          <span>Team Dispatched</span>
-        </div>
-        <div className="flex items-center gap-2 text-zd-text">
-          <span className="w-2.5 h-2.5 rounded-full bg-sev-safe" />
-          <span>Rescued / Safe</span>
         </div>
       </div>
     </div>

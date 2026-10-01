@@ -6,7 +6,6 @@ import { Button } from '../../components/ui/Button';
 import { realtimeService } from '../../services/realtime';
 import { MPU6050Kinematics } from '../../types';
 import { 
-  ArrowLeft, 
   RotateCcw, 
   Zap, 
   Info, 
@@ -20,17 +19,19 @@ import {
   Battery, 
   Thermometer,
   ShieldAlert,
+  ChevronDown,
+  ChevronRight,
+  TrendingUp,
   Layers,
-  Sparkles
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import clsx from 'clsx';
 
 export const MPU6050TelemetryScreen: React.FC = () => {
   const { 
-    selectedSensorId, 
-    sensors, 
     wards, 
-    navigateScreen, 
     createAlert,
     showToast,
     addAuditLog 
@@ -40,6 +41,10 @@ export const MPU6050TelemetryScreen: React.FC = () => {
   const [deviceDetailsOpen, setDeviceDetailsOpen] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
 
+  // Collapsible sections (collapsed by default per spec)
+  const [modelPipelineOpen, setModelPipelineOpen] = useState(false);
+  const [rawTelemetryOpen, setRawTelemetryOpen] = useState(false);
+
   // MPU-6050 Kinematics State
   const [kinematics, setKinematics] = useState<MPU6050Kinematics>(realtimeService.getLatestKinematics());
   const [sparkHistory, setSparkHistory] = useState<{
@@ -47,7 +52,7 @@ export const MPU6050TelemetryScreen: React.FC = () => {
     secondary: number[];
     tertiary: number[];
   }>({
-    primary: [0.1, 0.12, 0.08, 0.15, 0.11, 0.09, 0.14, 0.1],
+    primary: [0.1, 0.12, 0.08, 0.15, 0.11, 0.09, 0.14, 0.12],
     secondary: [0.05, 0.04, 0.06, 0.08, 0.05, 0.07, 0.05, 0.06],
     tertiary: [0.02, 0.01, 0.03, 0.02, 0.04, 0.01, 0.02, 0.03],
   });
@@ -179,44 +184,76 @@ export const MPU6050TelemetryScreen: React.FC = () => {
     addAuditLog('CALIBRATION_RESET', activeCategory, 'Zeroed kinematics & telemetry offsets');
   };
 
-  // Miniature sparkline helper
-  const renderSparkline = (values: number[]) => {
+  // Sparkline generator helper
+  const renderSparkline = (values: number[], width = 40, height = 16, strokeColor = 'currentColor') => {
     const min = Math.min(...values);
-    const max = Math.max(...values, min + 0.1);
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * 48;
-      const y = 14 - ((v - min) / (max - min)) * 12;
-      return `${x},${y}`;
+    const max = Math.max(...values, min + 0.05);
+    const pts = values.map((v, i) => {
+      const x = (i / (values.length - 1)) * width;
+      const y = height - 2 - ((v - min) / (max - min)) * (height - 4);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
 
     return (
-      <svg className="w-12 h-3.5 inline-block ml-2 opacity-70" viewBox="0 0 48 14">
-        <polyline fill="none" stroke="currentColor" strokeWidth="1" points={points} />
+      <svg className="shrink-0" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <polyline fill="none" stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={pts} />
       </svg>
     );
   };
 
-  // Pipeline documentation mapping
-  const pipelineSpecs = {
-    mpu6050: {
-      title: 'MPU6050 6-Axis IMU (ESP32-S3 Node)',
-      subtitle: 'Inclinometer & Seismic Shear Accelerometer',
-      roleFormula: 'MPU6050 IMU → LSTM live trigger (vibration & displacement rate in mm/s)',
-      modelNote: '50Hz high-frequency raw I2C sampling with Kalman filtering for creep detection.',
+  // Sensor definitions
+  const sensorCatalog = [
+    {
+      id: 'mpu6050' as const,
+      name: 'MPU6050 6-Axis IMU',
+      subtitle: 'Ground movement',
+      icon: Activity,
+      status: 'online' as const,
+      liveValue: kinematics.displacementRateMmPerSec.toFixed(2),
+      unit: 'mm/s',
+      spark: [0.12, 0.14, 0.10, 0.16, 0.11, 0.18, 0.14, parseFloat(kinematics.displacementRateMmPerSec.toFixed(2))],
+      oneLiner: 'High-frequency 50Hz accelerometry monitoring micro-creeps and seismic shear waves.',
+      warningAt: 1.5,
+      criticalAt: 2.5,
+      maxScale: 3.5,
+      trendData: [0.12, 0.15, 0.18, 0.14, 0.22, 0.28, 0.32, 0.48],
+      secondaryMetrics: [
+        { label: 'Gyroscope (X / Y / Z)', value: `${kinematics.gyro.x.toFixed(2)} / ${kinematics.gyro.y.toFixed(2)} / ${kinematics.gyro.z.toFixed(2)}`, unit: '°/s', spark: [0.1, 0.14, -0.08, 0.02, 0.12] },
+        { label: 'Enclosure Temp', value: (kinematics.tempC ?? 18.8).toFixed(1), unit: '°C', spark: [18.2, 18.4, 18.5, 18.7, 18.8] },
+        { label: 'RF Signal & SNR', value: '-72 / +9.2', unit: 'dBm · dB', spark: [8.8, 9.0, 9.1, 9.2, 9.2] },
+      ],
+      pipelineModel: 'TDK InvenSense MPU-6050 + Kalman Filter → LSTM Recurrent Edge Inference (50Hz sample rate)',
+      pingInfo: 'LoRa 868.10 MHz (SF7/125kHz) · Packet Latency 14ms · Battery 94% (LiFePO4 Solar float)',
       hardware: {
         chip: 'TDK InvenSense MPU-6050 + ESP32-S3',
         bus: 'I2C 0x68 (400 kHz Fast-Mode)',
-        link: 'LoRa 868.10 MHz (SF7/125kHz) + BLE Mesh',
-        power: '3.7V 3200mAh LiFePO4 + 2W Solar Harvester',
+        link: 'LoRa 868.10 MHz + BLE Mesh',
+        power: '3.7V 3200mAh LiFePO4 + 2W Solar',
         firmware: 'ZD-ESP32-v3.8.4',
         location: 'Kotdwar Ridge Slope A (Node 22)',
       },
     },
-    ultrasonic_gauge: {
-      title: 'JSN-SR04T Industrial Ultrasonic Gauge',
-      subtitle: 'Waterproof Hydrology Crest Transducer',
-      roleFormula: 'JSN-SR04T ultrasonic gauge → rule-based flood breach override when river level crosses danger datum',
-      modelNote: 'Direct deterministic override bypassing ML latency when surge breaches safety threshold.',
+    {
+      id: 'ultrasonic_gauge' as const,
+      name: 'JSN-SR04T Ultrasonic',
+      subtitle: 'River crest override',
+      icon: Waves,
+      status: ultrasonicLevel > 3.2 ? 'warning' as const : 'online' as const,
+      liveValue: ultrasonicLevel.toFixed(2),
+      unit: 'm',
+      spark: [2.8, 2.9, 3.0, 3.1, 3.15, 3.18, 3.2, ultrasonicLevel],
+      oneLiner: 'Real-time waterproof sonar transducer measuring Khoh river weir water level and crest clearance.',
+      warningAt: 3.0,
+      criticalAt: 3.2,
+      maxScale: 5.5,
+      trendData: [2.10, 2.35, 2.60, 2.85, 3.00, 3.15, 3.20],
+      secondaryMetrics: [
+        { label: 'Danger Datum Mark', value: '3.20', unit: 'm', spark: [3.2, 3.2, 3.2, 3.2, 3.2] },
+        { label: 'Datum Clearance', value: ultrasonicLevel > 3.2 ? `+${(ultrasonicLevel - 3.2).toFixed(2)}` : `-${(3.2 - ultrasonicLevel).toFixed(2)}`, unit: ultrasonicLevel > 3.2 ? 'm (OVERRIDE)' : 'm nominal', spark: [0.4, 0.3, 0.2, 0.05, ultrasonicLevel - 3.2] },
+        { label: 'Transceiver Pulse', value: '40', unit: 'kHz Sonar', spark: [40, 40, 40, 40, 40] },
+      ],
+      pipelineModel: 'JSN-SR04T Sonar Echo → Deterministic rule-based flood crest override (bypasses ML latency)',
+      pingInfo: 'LoRaWAN Class A Node 15 · RSSI -68 dBm · Battery 98% (12V Solar Backed Float)',
       hardware: {
         chip: 'JSN-SR04T Integrated Transceiver Probe',
         bus: 'UART / GPIO Echo Burst (40 kHz Sonar)',
@@ -226,11 +263,27 @@ export const MPU6050TelemetryScreen: React.FC = () => {
         location: 'Rampur Khoh Weir #3 Flume',
       },
     },
-    soil_moisture: {
-      title: 'Capacitive Subsurface Soil Moisture Probe',
-      subtitle: 'Multi-Depth Soil Saturation & Pore Pressure Array',
-      roleFormula: 'Capacitive soil moisture probe → LSTM live trigger (saturation above 80%)',
-      modelNote: 'Subsurface moisture weakens slope shear resistance and triggers liquefaction.',
+    {
+      id: 'soil_moisture' as const,
+      name: 'Capacitive Soil Probe',
+      subtitle: 'Soil saturation',
+      icon: Droplets,
+      status: soilSaturation > 80 ? 'warning' as const : 'online' as const,
+      liveValue: `${soilSaturation}`,
+      unit: '%',
+      spark: [64, 68, 70, 72, 74, 75, 76, soilSaturation],
+      oneLiner: 'Multi-depth corrosion-resistant capacitance array measuring pore water saturation and liquefaction risk.',
+      warningAt: 75,
+      criticalAt: 80,
+      maxScale: 100,
+      trendData: [58, 62, 65, 68, 72, 75, soilSaturation],
+      secondaryMetrics: [
+        { label: 'Pore Water Pressure', value: (soilSaturation * 0.48).toFixed(1), unit: 'kPa', spark: [30, 32, 34, 35, 36.5] },
+        { label: 'Critical Threshold', value: '80.0', unit: '%', spark: [80, 80, 80, 80, 80] },
+        { label: 'Subsurface Depth', value: '40', unit: 'cm Escarpment', spark: [40, 40, 40, 40, 40] },
+      ],
+      pipelineModel: 'Capacitive Frequency Resonator → Subsurface pore pressure tensor → LSTM live trigger',
+      pingInfo: 'LoRa Mesh Hop 2 · Packet SNR +8.4 dB · Battery 91% (3.6V Primary Lithium Thionyl)',
       hardware: {
         chip: 'Corrosion-Resistant Chirp I2C Capacitive Sensor',
         bus: 'I2C 0x20 Multi-Drop Bus',
@@ -240,11 +293,27 @@ export const MPU6050TelemetryScreen: React.FC = () => {
         location: 'Basin Escarpment Subsurface 40cm',
       },
     },
-    rain_gauge: {
-      title: 'Meteorological Rain Gauge & Copernicus 30m DEM',
-      subtitle: 'Tipping Bucket & Digital Elevation Topographic Station',
-      roleFormula: 'Rain gauge and Copernicus 30 m DEM → CatBoost seasonal susceptibility (3, 7 and 14-day rolling rainfall, slope, aspect)',
-      modelNote: 'Antecedent precipitation saturation matrix fed into GBDT for seasonal slope fragility.',
+    {
+      id: 'rain_gauge' as const,
+      name: 'Optical Rain Gauge & DEM',
+      subtitle: 'Rain forecast',
+      icon: CloudRain,
+      status: 'online' as const,
+      liveValue: rainRate.toFixed(1),
+      unit: 'mm/h',
+      spark: [20, 24, 28, 32, 36, 40, 41, rainRate],
+      oneLiner: 'Optical rainfall accumulator fused with Copernicus 30m DEM terrain slope and aspect matrices.',
+      warningAt: 50,
+      criticalAt: 70,
+      maxScale: 100,
+      trendData: [12.0, 18.5, 26.0, 34.0, 38.5, rainRate],
+      secondaryMetrics: [
+        { label: '7-Day Antecedent Wetness', value: '310', unit: 'mm cumulative', spark: [180, 210, 250, 280, 310] },
+        { label: 'Slope / Aspect Angle', value: '34.2 / SE', unit: 'degrees', spark: [34.2, 34.2, 34.2, 34.2, 34.2] },
+        { label: 'Rain Bucket Pulse', value: '0.2', unit: 'mm/tip resolution', spark: [0.2, 0.2, 0.2, 0.2, 0.2] },
+      ],
+      pipelineModel: 'Tipping Reed Counter + Copernicus DEM → CatBoost Gradient Boosted Trees (3, 7, 14-day rolling)',
+      pingInfo: 'Cellular LTE-M / LoRa Gateway Hub · RSSI -74 dBm · Mains 12V Float + PV Solar',
       hardware: {
         chip: 'Optical Tipping Bucket 0.2mm Reed Sensor',
         bus: 'Pulse Accumulator Counter Interrupt',
@@ -254,11 +323,27 @@ export const MPU6050TelemetryScreen: React.FC = () => {
         location: 'Kotdwar Tehsil Building Rooftop Station',
       },
     },
-    decision_engine: {
-      title: 'Alert Decision Engine & Consensus Gateway',
-      subtitle: 'CatBoost (40%) + LSTM (60%) Hybrid Fusion Hub',
-      roleFormula: 'Alert decision engine → blends CatBoost (40%) and LSTM (60%) into Safe, Advisory, Warning or Red directive',
-      modelNote: 'Dual-neural ensemble combining long-term seasonal susceptibility with millisecond telemetry triggers.',
+    {
+      id: 'decision_engine' as const,
+      name: 'Alert Decision Engine',
+      subtitle: 'Alert decision',
+      icon: Cpu,
+      status: 'warning' as const,
+      liveValue: `${decisionScore}`,
+      unit: '/ 100',
+      spark: [65, 70, 75, 80, 84, 87, 88, decisionScore],
+      oneLiner: 'Edge neural consensus gateway fusing long-term CatBoost seasonal priors (40%) with real-time LSTM telemetry (60%).',
+      warningAt: 70,
+      criticalAt: 85,
+      maxScale: 100,
+      trendData: [45, 52, 61, 74, 82, decisionScore],
+      secondaryMetrics: [
+        { label: 'CatBoost Seasonal Weight (40%)', value: '85', unit: '/ 100 prior', spark: [60, 68, 74, 80, 85] },
+        { label: 'LSTM Telemetry Weight (60%)', value: '92', unit: '/ 100 live', spark: [70, 78, 85, 90, 92] },
+        { label: 'Consensus Directive', value: 'RED EVAC', unit: 'Direct trigger', spark: [1, 1, 2, 2, 3] },
+      ],
+      pipelineModel: 'CatBoost (40%) + LSTM (60%) Weighted Ensemble Hub → Safe / Advisory / Warning / Red Directive',
+      pingInfo: 'Edge Concentrator SX1302 · Modbus RS485 · Starlink Failover Link · Industrial UPS',
       hardware: {
         chip: 'NVIDIA Jetson Orin Nano Edge Gateway Hub',
         bus: 'PCIe 4.0 / Modbus RS485 Industrial Bus',
@@ -268,36 +353,147 @@ export const MPU6050TelemetryScreen: React.FC = () => {
         location: 'Pauri Garhwal Central Operations Hub',
       },
     },
-  };
+  ];
 
-  const currentSpec = pipelineSpecs[activeCategory];
+  const currentSensor = sensorCatalog.find(s => s.id === activeCategory) || sensorCatalog[0];
+
+  // Derive dynamic threshold values for current sensor
+  const currentMetricNum = 
+    activeCategory === 'mpu6050' ? kinematics.displacementRateMmPerSec :
+    activeCategory === 'ultrasonic_gauge' ? ultrasonicLevel :
+    activeCategory === 'soil_moisture' ? soilSaturation :
+    activeCategory === 'rain_gauge' ? rainRate :
+    decisionScore;
+
+  const isCurrentCritical = currentMetricNum >= currentSensor.criticalAt;
+  const isCurrentWarning = currentMetricNum >= currentSensor.warningAt && !isCurrentCritical;
+  const statusLabel = isCurrentCritical ? 'Critical Trigger' : isCurrentWarning ? 'Warning' : 'Normal';
 
   return (
-    <div className={`relative w-full h-full flex flex-col p-6 overflow-hidden bg-zd-base text-zd-text select-none ${isSimulating ? 'ring-2 ring-sev-warning/60 ring-inset' : ''}`}>
-      
-      {/* 1. TOP HEADER & NAVIGATION */}
-      <div className="flex flex-col gap-3 pb-4 border-b border-zd-border shrink-0 z-10">
-        <div className="flex items-center justify-between">
+    <div className={`relative w-full h-full flex flex-col md:flex-row overflow-hidden bg-zd-base text-zd-text select-none ${isSimulating ? 'ring-2 ring-sev-warning/60 ring-inset' : ''}`}>
+
+      {/* ========================================================= */}
+      {/* 1. LEFT RAIL (260px): SENSORS LIST                       */}
+      {/* ========================================================= */}
+      <aside 
+        id="sensors-left-rail"
+        className="w-full md:w-[260px] h-auto md:h-full border-b md:border-b-0 md:border-r border-zd-border bg-zd-surface flex flex-col shrink-0 z-20 overflow-hidden"
+      >
+        {/* At-a-glance Health Summary Strip */}
+        <div className="p-3.5 border-b border-zd-border bg-zd-raised/50 shrink-0">
+          <div className="flex items-center justify-between">
+            <span className="font-sans font-semibold text-xs text-zd-text tracking-tight">Sensors</span>
+            <span className="font-sans text-[11px] text-zd-muted">
+              5 sensors · 4 normal · 1 warning
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Sensor Item List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-zd-border/60 custom-scrollbar font-sans">
+          {sensorCatalog.map((sensor) => {
+            const isActive = activeCategory === sensor.id;
+            const isWarn = sensor.status === 'warning';
+            const strokeColor = isActive ? '#5CC8BE' : isWarn ? '#E8843A' : '#71859C';
+
+            return (
+              <button
+                key={sensor.id}
+                onClick={() => setActiveCategory(sensor.id)}
+                className={clsx(
+                  "w-full p-3 text-left transition-colors flex items-center justify-between group focus:outline-none",
+                  isActive
+                    ? "bg-zd-raised border-l-2 border-zd-accent"
+                    : "hover:bg-zd-hover border-l-2 border-transparent"
+                )}
+              >
+                <div className="min-w-0 pr-2">
+                  {/* Line 1: Status Dot + Sensor Name */}
+                  <div className="flex items-center gap-2">
+                    <span className={clsx(
+                      "w-2 h-2 rounded-full shrink-0",
+                      isWarn ? "bg-sev-warning" : "bg-sev-normal"
+                    )} />
+                    <span className={clsx(
+                      "text-xs font-semibold truncate",
+                      isActive ? "text-zd-text" : "text-zd-muted group-hover:text-zd-text"
+                    )}>
+                      {sensor.name}
+                    </span>
+                  </div>
+
+                  {/* Line 2: Plain-language subtitle */}
+                  <span className="text-[11px] text-zd-dim block mt-0.5 ml-4">
+                    {sensor.subtitle}
+                  </span>
+                </div>
+
+                {/* Right side: Live Value in Data Font + 40px Sparkline */}
+                <div className="text-right shrink-0 flex flex-col items-end">
+                  <div className="font-mono text-xs font-semibold tabular-nums text-zd-text">
+                    <span>{sensor.liveValue}</span>
+                    <span className="text-[10px] text-zd-dim ml-1 font-normal">{sensor.unit}</span>
+                  </div>
+                  <div className="mt-1">
+                    {renderSparkline(sensor.spark, 40, 14, strokeColor)}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Rail Footer System Note */}
+        <div className="p-3 border-t border-zd-border bg-zd-surface/80 text-[11px] text-zd-dim font-sans shrink-0 hidden md:block">
+          <span>Continuous edge polling active</span>
+        </div>
+      </aside>
+
+      {/* ========================================================= */}
+      {/* 2. DETAIL PANEL (RIGHT): PREDICTABLE STANDARDIZED TEMPLATE */}
+      {/* ========================================================= */}
+      <main className="flex-1 h-full overflow-y-auto custom-scrollbar flex flex-col p-5 md:p-6 space-y-5 bg-zd-base">
+
+        {/* 1. DETAIL PANEL HEADER */}
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-zd-border shrink-0">
           <div>
-            <button
-              onClick={() => navigateScreen('overview')}
-              className="flex items-center gap-1.5 text-xs text-zd-muted hover:text-zd-accent mb-1 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Overview</span>
-            </button>
             <div className="flex items-center gap-3">
-              <h1 className="font-sans font-semibold text-lg text-zd-text">
-                {currentSpec.title}
-              </h1>
-              <span className="font-mono text-xs text-zd-dim">
-                ({currentSpec.subtitle})
+              <h2 className="font-sans font-semibold text-lg text-zd-text leading-tight">
+                {currentSensor.name}
+              </h2>
+              <span className="font-sans text-xs text-zd-dim">·</span>
+              <span className="font-sans text-xs text-zd-muted font-medium">
+                {currentSensor.subtitle}
+              </span>
+            </div>
+            <p className="font-sans text-xs text-zd-muted mt-1 leading-relaxed max-w-2xl">
+              {currentSensor.oneLiner}
+            </p>
+
+            {/* Health Chips Row (Sentence Case) */}
+            <div className="flex flex-wrap items-center gap-2 mt-2.5 font-sans text-xs text-zd-muted">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zd-surface border border-zd-border">
+                <span className={clsx(
+                  "w-1.5 h-1.5 rounded-full",
+                  isCurrentCritical ? "bg-sev-critical" : isCurrentWarning ? "bg-sev-warning" : "bg-sev-normal"
+                )} />
+                <span>{isCurrentCritical ? 'Critical state' : isCurrentWarning ? 'Elevated' : 'Online'}</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zd-surface border border-zd-border">
+                <Battery className="w-3.5 h-3.5 text-sev-normal" />
+                <span>Battery 94%</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zd-surface border border-zd-border">
+                <Radio className="w-3.5 h-3.5 text-zd-accent" />
+                <span className="font-mono text-[11px] tabular-nums">RSSI -72 dBm</span>
               </span>
             </div>
           </div>
 
           {/* Action Controls */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -313,331 +509,416 @@ export const MPU6050TelemetryScreen: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={handleTriggerSimulation}
-              className={`gap-1.5 font-sans text-xs ${isSimulating ? 'text-sev-warning font-semibold animate-pulse' : 'text-zd-muted hover:text-zd-text'}`}
+              className={clsx(
+                "gap-1.5 font-sans text-xs border border-zd-border",
+                isSimulating 
+                  ? "bg-sev-warning/15 text-sev-warning border-sev-warning/40 font-semibold animate-pulse" 
+                  : "text-zd-muted hover:text-zd-text hover:bg-zd-surface"
+              )}
               title="Test telemetry trigger"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>{isSimulating ? 'Simulating trigger...' : 'Simulate trigger'}</span>
+              <span>{isSimulating ? 'Simulating...' : 'Simulate trigger'}</span>
             </Button>
 
+            {/* Device specs as a text link */}
             <button
               onClick={() => setDeviceDetailsOpen(true)}
-              className="h-8 px-3 rounded-[6px] border border-zd-border bg-zd-surface hover:bg-zd-raised flex items-center gap-1.5 font-sans text-xs text-zd-muted hover:text-zd-text transition-colors"
+              className="font-sans text-xs text-zd-accent hover:underline flex items-center gap-1 px-2 py-1 transition-colors"
             >
-              <Info className="w-3.5 h-3.5 text-zd-accent" />
+              <Info className="w-3.5 h-3.5" />
               <span>Device specs</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* 2. SENSOR MODALITY SELECTOR TABS */}
-        <div className="flex items-center gap-1.5 overflow-x-auto p-1 bg-zd-surface/80 rounded-panel border border-zd-border custom-scrollbar">
-          {[
-            { id: 'mpu6050' as const, label: 'MPU6050 6-Axis IMU', icon: Activity, tag: 'LSTM 50Hz' },
-            { id: 'ultrasonic_gauge' as const, label: 'JSN-SR04T Ultrasonic', icon: Waves, tag: 'Datum Override' },
-            { id: 'soil_moisture' as const, label: 'Capacitive Soil Probe', icon: Droplets, tag: 'Subsurface 80%' },
-            { id: 'rain_gauge' as const, label: 'Rain Gauge & DEM', icon: CloudRain, tag: 'CatBoost 3/7/14D' },
-            { id: 'decision_engine' as const, label: 'Alert Decision Engine', icon: Cpu, tag: 'Ensemble 40/60' },
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeCategory === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveCategory(tab.id)}
-                className={clsx(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-control text-xs font-sans whitespace-nowrap transition-all",
-                  isActive
-                    ? "bg-zd-raised text-zd-text font-semibold shadow-xs border border-zd-border"
-                    : "text-zd-muted hover:text-zd-text hover:bg-zd-hover"
-                )}
+        {/* ========================================================= */}
+        {/* 2. COCKPIT CENTER-STAGE: 3D VIEW IN MIDDLE, TELEMETRY AROUND IT */}
+        {/* ========================================================= */}
+        <section aria-label="Sensor Telemetry Cockpit" className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          
+          {/* --------------------------------------------------------- */}
+          {/* FLANK LEFT (3 COLS): HERO METRIC, GAUGE & 24H TREND       */}
+          {/* --------------------------------------------------------- */}
+          <div className="lg:col-span-3 flex flex-col gap-4 order-2 lg:order-1">
+            
+            {/* Primary Reading & Gauge Card */}
+            <div className="p-4 bg-zd-surface rounded-panel border border-zd-border flex flex-col justify-between flex-1">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-sans text-xs text-zd-dim">Live Primary Reading</span>
+                  {/* Status Dot / Badge */}
+                  {isCurrentCritical ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-sans text-[11px] font-semibold bg-sev-critical text-white shadow-sm">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>{statusLabel}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-zd-raised border border-zd-border font-sans text-[11px] font-medium text-zd-text">
+                      <span className={clsx(
+                        "w-1.5 h-1.5 rounded-full",
+                        isCurrentWarning ? "bg-sev-warning" : "bg-sev-normal"
+                      )} />
+                      <span>{statusLabel}</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-baseline gap-2 mb-3">
+                  <span className="font-mono text-3xl xl:text-4xl font-semibold text-zd-text leading-none tabular-nums">
+                    {currentSensor.liveValue}
+                  </span>
+                  <span className="font-mono text-xs text-zd-dim">
+                    {currentSensor.unit}
+                  </span>
+                </div>
+              </div>
+
+              {/* Threshold Gauge with Labeled Tick Marks */}
+              <div className="pt-3 border-t border-zd-border/60">
+                <div className="flex justify-between items-center text-[10px] font-sans text-zd-muted mb-1.5">
+                  <span>Threshold datum</span>
+                  <span className="font-mono text-zd-dim">Max: {currentSensor.maxScale} {currentSensor.unit}</span>
+                </div>
+
+                {/* Visual Track */}
+                <div className="relative h-2.5 w-full bg-zd-base border border-zd-border rounded-full overflow-hidden flex">
+                  <div className="h-full bg-sev-normal/30 w-[50%]" />
+                  <div className="h-full bg-sev-warning/35 w-[30%]" />
+                  <div className="h-full bg-sev-critical/45 w-[20%]" />
+
+                  {/* Live Needle Marker */}
+                  <div
+                    className="absolute top-0 bottom-0 w-1.5 bg-white shadow-[0_0_6px_rgba(255,255,255,0.9)] transition-all duration-300 rounded-full"
+                    style={{
+                      left: `${Math.min(99, Math.max(1, (currentMetricNum / currentSensor.maxScale) * 100))}%`,
+                    }}
+                  />
+                </div>
+
+                {/* Ticks */}
+                <div className="relative flex justify-between text-[10px] font-sans text-zd-dim mt-1.5">
+                  <div className="flex items-center gap-1">
+                    <span className="w-1 h-1 rounded-full bg-sev-normal" />
+                    <span>Normal</span>
+                  </div>
+                  <div className="flex items-center gap-1 font-mono text-[9px]">
+                    <span className="w-1 h-1 rounded-full bg-sev-warning" />
+                    <span>Warn ({currentSensor.warningAt})</span>
+                  </div>
+                  <div className="flex items-center gap-1 font-mono text-[9px]">
+                    <span className="w-1 h-1 rounded-full bg-sev-critical" />
+                    <span>Crit ({currentSensor.criticalAt})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 24h Trend Chart Card */}
+            <div className="p-4 bg-zd-surface rounded-panel border border-zd-border flex flex-col justify-between flex-1">
+              <div className="flex items-center justify-between text-xs font-sans text-zd-muted mb-1">
+                <span>24h Trend history</span>
+                <TrendingUp className="w-3.5 h-3.5 text-zd-accent" />
+              </div>
+
+              {/* Spark Bars Graph */}
+              <div className="h-16 flex items-end gap-1.5 pt-2 my-1">
+                {currentSensor.trendData.map((val, idx) => {
+                  const maxVal = Math.max(...currentSensor.trendData, currentSensor.criticalAt);
+                  const heightPct = Math.min(100, Math.max(15, (val / maxVal) * 100));
+                  const isOverCrit = val >= currentSensor.criticalAt;
+                  const isOverWarn = val >= currentSensor.warningAt;
+
+                  return (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                      <div
+                        className={clsx(
+                          "w-full rounded-t-sm transition-all duration-300",
+                          isOverCrit ? "bg-sev-critical" : isOverWarn ? "bg-sev-warning" : "bg-zd-accent"
+                        )}
+                        style={{ height: `${heightPct}%` }}
+                      />
+                      <span className="font-mono text-[9px] text-zd-dim">
+                        {idx * 4}h
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-[10px] font-sans text-zd-dim pt-2 border-t border-zd-border/60 flex justify-between">
+                <span>Sliding baseline</span>
+                <span className="font-mono text-zd-muted">σ = ±0.03</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* --------------------------------------------------------- */}
+          {/* CENTER STAGE (6 COLS): 3D DEVICE VIEW IN THE MIDDLE       */}
+          {/* --------------------------------------------------------- */}
+          <div className="lg:col-span-6 h-[400px] lg:h-auto min-h-[420px] bg-gradient-to-b from-[#0E151C] to-[#080D12] rounded-panel border border-zd-border flex flex-col overflow-hidden relative shadow-md order-1 lg:order-2">
+            
+            {/* 3D Stage Header */}
+            <div className="p-3 border-b border-zd-border/80 bg-zd-surface/80 backdrop-blur flex items-center justify-between z-10">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-zd-accent animate-pulse" />
+                <span className="font-sans font-semibold text-xs text-zd-text">Device view (3D)</span>
+                <span className="font-sans text-xs text-zd-dim">·</span>
+                <span className="font-sans text-[11px] text-zd-muted">{currentSensor.name}</span>
+              </div>
+
+              <div className="flex items-center gap-2 font-sans text-[11px] text-zd-dim">
+                <span>Drag to orbit · Scroll to zoom</span>
+              </div>
+            </div>
+
+            {/* Orbitable 3D Canvas */}
+            <div className="flex-1 relative w-full h-full">
+              <Sensor3DCanvas
+                sensorType={activeCategory}
+                rotation={kinematics.rotation}
+                filterAxis="ALL"
+                isVibrating={isSimulating}
+                metricValue={currentMetricNum}
+              />
+
+              {/* Bottom HUD: Live Orientation & Telemetry Readings */}
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                
+                {/* Left HUD: Kinematic Orientation or Sensor State */}
+                <div className="px-2.5 py-1 rounded bg-zd-base/85 backdrop-blur border border-zd-border/80 font-mono text-[10px] text-zd-muted flex items-center gap-2 pointer-events-auto">
+                  {activeCategory === 'mpu6050' ? (
+                    <>
+                      <span className="text-zd-dim font-sans">Orientation:</span>
+                      <span className="text-zd-accent tabular-nums">P: {(kinematics.rotation?.pitch ?? 0).toFixed(1)}°</span>
+                      <span className="text-zd-border">|</span>
+                      <span className="text-zd-accent tabular-nums">R: {(kinematics.rotation?.roll ?? 0).toFixed(1)}°</span>
+                      <span className="text-zd-border">|</span>
+                      <span className="text-zd-accent tabular-nums">Y: {(kinematics.rotation?.yaw ?? 0).toFixed(1)}°</span>
+                    </>
+                  ) : activeCategory === 'ultrasonic_gauge' ? (
+                    <>
+                      <span className="text-zd-dim font-sans">Sonar Echo:</span>
+                      <span className="text-zd-accent tabular-nums">40 kHz Burst</span>
+                      <span className="text-zd-border">|</span>
+                      <span className="text-zd-dim font-sans">Datum:</span>
+                      <span className="text-zd-text tabular-nums">3.20m</span>
+                    </>
+                  ) : activeCategory === 'soil_moisture' ? (
+                    <>
+                      <span className="text-zd-dim font-sans">Capacitance:</span>
+                      <span className="text-zd-accent tabular-nums">Multi-Depth Probe</span>
+                      <span className="text-zd-border">|</span>
+                      <span className="text-zd-text tabular-nums">40cm Escarpment</span>
+                    </>
+                  ) : activeCategory === 'rain_gauge' ? (
+                    <>
+                      <span className="text-zd-dim font-sans">Optical Accumulator:</span>
+                      <span className="text-zd-accent tabular-nums">0.2mm/tip</span>
+                      <span className="text-zd-border">|</span>
+                      <span className="text-zd-text tabular-nums">DEM Slope 34°</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-zd-dim font-sans">AI Consensus:</span>
+                      <span className="text-zd-accent tabular-nums">CatBoost 40% + LSTM 60%</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Right HUD: Active Node Controller */}
+                <div className="px-2 py-1 rounded bg-zd-base/85 backdrop-blur border border-zd-border/80 font-sans text-[10px] text-zd-dim flex items-center gap-1.5 pointer-events-auto">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sev-normal" />
+                  <span className="font-mono text-zd-text">{currentSensor.hardware.chip.split('+')[0].trim()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* --------------------------------------------------------- */}
+          {/* FLANK RIGHT (3 COLS): SECONDARY CHANNELS & NODE SPECS     */}
+          {/* --------------------------------------------------------- */}
+          <div className="lg:col-span-3 flex flex-col gap-4 order-3 lg:order-3">
+            
+            {/* Secondary Telemetry Channels Card */}
+            <div className="p-4 bg-zd-surface rounded-panel border border-zd-border flex flex-col justify-between flex-1">
+              <div>
+                <span className="font-sans font-semibold text-xs text-zd-text block mb-3">
+                  Secondary telemetry
+                </span>
+
+                <div className="space-y-2.5">
+                  {currentSensor.secondaryMetrics.map((metric, i) => (
+                    <div key={i} className="p-2.5 bg-zd-base rounded border border-zd-border/70 flex items-center justify-between">
+                      <div className="min-w-0 pr-2">
+                        <span className="text-zd-dim text-[10px] font-sans block truncate">{metric.label}</span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-mono text-xs font-semibold text-zd-text tabular-nums">
+                            {metric.value}
+                          </span>
+                          <span className="font-mono text-[9px] text-zd-dim truncate">
+                            {metric.unit}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {renderSparkline(metric.spark, 34, 12, '#5CC8BE')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Edge Node Hardware Quick Spec */}
+              <div className="pt-3 mt-3 border-t border-zd-border/60 font-sans text-xs">
+                <div className="flex items-center justify-between text-[11px] text-zd-dim mb-1.5">
+                  <span>Field deployment</span>
+                  <span className="text-zd-accent">{currentSensor.hardware.location.split('(')[0].trim()}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-zd-dim">
+                  <span>Protocol link:</span>
+                  <span className="font-mono text-zd-text">{currentSensor.hardware.link.split('+')[0].trim()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Architecture Link Drawer Trigger */}
+            <div className="p-3.5 bg-zd-surface rounded-panel border border-zd-border flex items-center justify-between">
+              <div>
+                <span className="font-sans font-medium text-xs text-zd-text block">Hardware architecture</span>
+                <span className="font-sans text-[11px] text-zd-dim block mt-0.5">Bus, power & firmware profiles</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeviceDetailsOpen(true)}
+                className="font-sans text-xs text-zd-accent hover:text-zd-text gap-1 shrink-0"
               >
-                <Icon className={clsx("w-3.5 h-3.5", isActive ? "text-zd-accent" : "text-zd-dim")} />
-                <span>{tab.label}</span>
-                <span className={clsx(
-                  "text-[9px] font-mono px-1.5 py-0.2 rounded",
-                  isActive ? "bg-zd-accent/15 text-zd-accent font-bold" : "bg-zd-base text-zd-dim"
-                )}>
-                  {tab.tag}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                <Info className="w-3.5 h-3.5" />
+                <span>Specs</span>
+              </Button>
+            </div>
 
-        {/* 3. AI PIPELINE FORMULA BANNER (As specified in System Architecture) */}
-        <div className="p-2.5 bg-zd-surface/90 border border-zd-border rounded-panel flex items-center justify-between text-xs font-sans">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-zd-accent shrink-0 animate-pulse" />
-            <span className="font-mono text-xs font-semibold text-zd-text truncate">
-              {currentSpec.roleFormula}
-            </span>
-          </div>
-          <span className="text-[11px] font-sans text-zd-dim hidden lg:inline-block ml-4 shrink-0">
-            {currentSpec.modelNote}
-          </span>
-        </div>
-      </div>
-
-      {/* 4. LARGE 3D STAGE WITH FLOATING TELEMETRY GAUGES */}
-      <div className="relative flex-1 w-full my-4 rounded-panel overflow-hidden bg-gradient-to-b from-[#0E151C] to-[#080D12] border border-zd-border">
-        {/* Real 3D Three.js Interactive Canvas */}
-        <div className="absolute inset-0">
-          <Sensor3DCanvas
-            sensorType={activeCategory}
-            rotation={kinematics.rotation}
-            filterAxis="ALL"
-            isVibrating={isSimulating}
-            metricValue={
-              activeCategory === 'ultrasonic_gauge' ? ultrasonicLevel :
-              activeCategory === 'soil_moisture' ? soilSaturation :
-              activeCategory === 'rain_gauge' ? rainRate :
-              decisionScore
-            }
-          />
-        </div>
-
-        {/* Floating Top-Left Status Pill */}
-        <div className="absolute top-4 left-4 z-10 pointer-events-none">
-          <div className={clsx(
-            "px-3 py-1 rounded-full text-xs font-sans font-medium flex items-center gap-2 backdrop-blur-md border",
-            isSimulating
-              ? "bg-sev-warning/20 border-sev-warning/40 text-sev-warning"
-              : "bg-zd-surface/85 border-zd-border text-zd-text"
-          )}>
-            <span className={clsx(
-              "w-2 h-2 rounded-full",
-              isSimulating ? "bg-sev-warning animate-ping" : "bg-sev-normal"
-            )} />
-            <span>
-              {isSimulating ? 'Threshold surge simulated' : 'Online · Continuous stream'}
-            </span>
-          </div>
-        </div>
-
-        {/* Dynamic Telemetry Readout: Top Right */}
-        <div className="absolute top-4 right-4 z-10 pointer-events-none text-right font-mono text-xs space-y-1.5 bg-zd-surface/80 p-2.5 rounded-panel border border-zd-border/60 backdrop-blur">
-          {activeCategory === 'mpu6050' && (
-            <>
-              <span className="font-sans text-[11px] text-zd-dim block">Gyroscope (°/s)</span>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">X: </span>
-                <span className="text-zd-text">{kinematics.gyro?.x?.toFixed(2) ?? '0.12'}</span>
-                {renderSparkline(sparkHistory.primary)}
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Y: </span>
-                <span className="text-zd-text">{kinematics.gyro?.y?.toFixed(2) ?? '-0.08'}</span>
-                {renderSparkline(sparkHistory.secondary)}
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Z: </span>
-                <span className="text-zd-text">{kinematics.gyro?.z?.toFixed(2) ?? '0.02'}</span>
-                {renderSparkline(sparkHistory.tertiary)}
-              </div>
-            </>
-          )}
-
-          {activeCategory === 'ultrasonic_gauge' && (
-            <>
-              <span className="font-sans text-[11px] text-zd-dim block">River Hydrology Flume</span>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Level: </span>
-                <span className={clsx("font-bold", ultrasonicLevel > 4.0 ? "text-sev-critical" : "text-zd-text")}>
-                  {ultrasonicLevel.toFixed(2)} m
-                </span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Datum Mark: </span>
-                <span className="text-zd-text">3.20 m</span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Breach: </span>
-                <span className={clsx("font-bold", ultrasonicLevel > 3.2 ? "text-sev-critical" : "text-sev-normal")}>
-                  {ultrasonicLevel > 3.2 ? `+${(ultrasonicLevel - 3.2).toFixed(2)} m (OVERRIDE)` : 'Nominal clearance'}
-                </span>
-              </div>
-            </>
-          )}
-
-          {activeCategory === 'soil_moisture' && (
-            <>
-              <span className="font-sans text-[11px] text-zd-dim block">Pore Saturation Matrix</span>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">40cm Saturation: </span>
-                <span className={clsx("font-bold", soilSaturation > 80 ? "text-sev-critical" : "text-zd-text")}>
-                  {soilSaturation}%
-                </span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Trigger Level: </span>
-                <span className="text-zd-accent">&gt; 80% Live Trigger</span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Pore Pressure: </span>
-                <span className="text-zd-text">{(soilSaturation * 0.48).toFixed(1)} kPa</span>
-              </div>
-            </>
-          )}
-
-          {activeCategory === 'rain_gauge' && (
-            <>
-              <span className="font-sans text-[11px] text-zd-dim block">Copernicus & Rain Gauge</span>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Rainfall Rate: </span>
-                <span className="text-zd-text font-bold">{rainRate.toFixed(1)} mm/h</span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">7-Day Rolling: </span>
-                <span className="text-amber-400 font-bold">310 mm</span>
-              </div>
-              <div className="text-zd-muted">
-                <span className="text-zd-dim">Slope / Aspect: </span>
-                <span className="text-zd-text">34.2° / SE Facing</span>
-              </div>
-            </>
-          )}
-
-          {activeCategory === 'decision_engine' && (
-            <>
-              <span className="font-sans text-[11px] text-zd-dim block">Neural Ensemble Weights</span>
-              <div className="text-amber-400">
-                <span>CatBoost Seasonal (40%): </span>
-                <span className="font-bold">85 / 100</span>
-              </div>
-              <div className="text-cyan-400">
-                <span>LSTM Real-Time (60%): </span>
-                <span className="font-bold">92 / 100</span>
-              </div>
-              <div className="text-sev-critical">
-                <span>Blended Directive: </span>
-                <span className="font-bold">RED EVACUATION</span>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Floating Bottom-Left Indicator */}
-        <div className="absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-xs space-y-1 bg-zd-surface/80 p-2.5 rounded-panel border border-zd-border/60 backdrop-blur">
-          <span className="font-sans text-[11px] text-zd-dim block">Node Telemetry Ping</span>
-          <div className="text-zd-muted flex items-center gap-2">
-            <Radio className="w-3 h-3 text-zd-accent" />
-            <span>LoRa 868.1 MHz · SNR +9.2 dB · RSSI -72 dBm</span>
-          </div>
-          <div className="text-zd-muted flex items-center gap-2">
-            <Battery className="w-3 h-3 text-sev-normal" />
-            <span>Battery 94% · Solar Charging 2.1W</span>
-          </div>
-        </div>
-
-        {/* Floating Bottom-Right Environmental Temp */}
-        <div className="absolute bottom-4 right-4 z-10 pointer-events-none text-right font-mono text-xs bg-zd-surface/80 p-2.5 rounded-panel border border-zd-border/60 backdrop-blur">
-          <span className="font-sans text-[11px] text-zd-dim block mb-0.5">Core Enclosure Temp</span>
-          <div className="flex items-center justify-end gap-1.5 text-zd-text">
-            <Thermometer className="w-3.5 h-3.5 text-zd-muted" />
-            <span className="text-sm font-semibold">{(kinematics.tempC ?? 18.84).toFixed(2)} °C</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. THRESHOLD GAUGE BAR BELOW STAGE */}
-      <div className="bg-zd-surface border border-zd-border rounded-panel p-4 shrink-0">
-        <div className="flex items-baseline justify-between mb-2 font-mono">
-          <div>
-            <span className="font-sans text-xs text-zd-muted mr-3">
-              {activeCategory === 'mpu6050' && 'Calculated Displacement Velocity (LSTM Input)'}
-              {activeCategory === 'ultrasonic_gauge' && 'River Flume Clearance to Danger Datum (Rule Override)'}
-              {activeCategory === 'soil_moisture' && 'Subsurface Pore Saturation Ratio (Liquefaction Trigger)'}
-              {activeCategory === 'rain_gauge' && 'CatBoost 7-Day Antecedent Rainfall Susceptibility'}
-              {activeCategory === 'decision_engine' && 'Ensemble Consensus Score (CatBoost 40% + LSTM 60%)'}
-            </span>
-            <span className="text-2xl font-light text-zd-text">
-              {activeCategory === 'mpu6050' && `${kinematics.displacementRateMmPerSec.toFixed(2)} mm/s`}
-              {activeCategory === 'ultrasonic_gauge' && `${ultrasonicLevel.toFixed(2)} m`}
-              {activeCategory === 'soil_moisture' && `${soilSaturation}%`}
-              {activeCategory === 'rain_gauge' && `${rainRate.toFixed(1)} mm/h`}
-              {activeCategory === 'decision_engine' && `${decisionScore} / 100`}
-            </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] text-zd-dim font-sans">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-sev-normal" /> Normal Baseline
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-sev-warning" /> Warning Threshold
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-sev-critical" /> Critical Trigger
-            </span>
+        </section>
+
+        {/* ========================================================= */}
+        {/* 3. SURROUNDING BOTTOM ROW: PIPELINE & TELEMETRY PING      */}
+        {/* ========================================================= */}
+        <section aria-label="Pipeline and Telemetry Metrics" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Collapsible Section 1: Model & Pipeline */}
+          <div className="border border-zd-border rounded-panel bg-zd-surface overflow-hidden">
+            <button
+              onClick={() => setModelPipelineOpen(!modelPipelineOpen)}
+              className="w-full p-3.5 flex items-center justify-between text-left hover:bg-zd-hover transition-colors font-sans text-xs focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-zd-accent" />
+                <span className="font-semibold text-zd-text">Model & pipeline integration</span>
+              </div>
+              <div className="flex items-center gap-2 text-zd-dim">
+                <span className="text-[11px]">{modelPipelineOpen ? 'Hide' : 'Expand'}</span>
+                {modelPipelineOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </div>
+            </button>
+
+            {modelPipelineOpen && (
+              <div className="p-3.5 pt-0 border-t border-zd-border/60 space-y-2.5 font-sans text-xs text-zd-muted animate-in fade-in-0">
+                <p className="leading-relaxed">
+                  {currentSensor.pipelineModel}
+                </p>
+                <div className="p-2.5 bg-zd-base rounded border border-zd-border font-mono text-[11px] text-zd-text flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-zd-accent shrink-0" />
+                  <span>Edge feature extraction: 50Hz Fast Fourier transform windowing & Kalman noise filtration.</span>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Dynamic Zone Bar */}
-        <div className="relative h-2.5 w-full bg-zd-base border border-zd-border rounded-full overflow-hidden flex mt-2">
-          <div className="h-full bg-sev-normal/40 w-[45%]" />
-          <div className="h-full bg-sev-warning/45 w-[30%]" />
-          <div className="h-full bg-sev-critical/50 w-[25%]" />
+          {/* Collapsible Section 2: Raw Telemetry Ping */}
+          <div className="border border-zd-border rounded-panel bg-zd-surface overflow-hidden">
+            <button
+              onClick={() => setRawTelemetryOpen(!rawTelemetryOpen)}
+              className="w-full p-3.5 flex items-center justify-between text-left hover:bg-zd-hover transition-colors font-sans text-xs focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-zd-accent" />
+                <span className="font-semibold text-zd-text">Raw telemetry ping & packet metrics</span>
+              </div>
+              <div className="flex items-center gap-2 text-zd-dim">
+                <span className="text-[11px]">{rawTelemetryOpen ? 'Hide' : 'Expand'}</span>
+                {rawTelemetryOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </div>
+            </button>
 
-          {/* Dynamic Marker Position */}
-          <div
-            className="absolute top-0 bottom-0 w-1.5 bg-zd-text shadow-md transition-all duration-200 rounded-full"
-            style={{
-              left: `${Math.min(99, Math.max(1, 
-                activeCategory === 'mpu6050' ? (kinematics.displacementRateMmPerSec / 3.5) * 100 :
-                activeCategory === 'ultrasonic_gauge' ? (ultrasonicLevel / 5.5) * 100 :
-                activeCategory === 'soil_moisture' ? soilSaturation :
-                activeCategory === 'rain_gauge' ? (rainRate / 100) * 100 :
-                decisionScore
-              ))}%`,
-            }}
-          />
-        </div>
-      </div>
+            {rawTelemetryOpen && (
+              <div className="p-3.5 pt-0 border-t border-zd-border/60 space-y-2 font-mono text-xs text-zd-muted animate-in fade-in-0">
+                <div className="flex items-center justify-between py-1 border-b border-zd-border/40">
+                  <span className="font-sans text-zd-dim">Link summary:</span>
+                  <span className="text-zd-text">{currentSensor.pingInfo}</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-zd-border/40">
+                  <span className="font-sans text-zd-dim">Bus address:</span>
+                  <span className="text-zd-text">{currentSensor.hardware.bus}</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="font-sans text-zd-dim">Firmware target:</span>
+                  <span className="text-zd-accent">{currentSensor.hardware.firmware}</span>
+                </div>
+              </div>
+            )}
+          </div>
 
-      {/* 6. HARDWARE ARCHITECTURE DRAWER */}
+        </section>
+
+      </main>
+
+      {/* Hardware Architecture Drawer (Opens from "Device specs" text link) */}
       <Drawer
         isOpen={deviceDetailsOpen}
         onClose={() => setDeviceDetailsOpen(false)}
         title="Hardware & Link Architecture"
-        subtitle={`${currentSpec.title} · ${currentSpec.hardware.location}`}
+        subtitle={`${currentSensor.name} · ${currentSensor.hardware.location}`}
         width="w-96"
       >
         <div className="space-y-4 font-sans text-xs">
-          <div className="p-3 bg-zd-base border border-zd-border rounded-panel space-y-2 font-mono">
+          <div className="p-3.5 bg-zd-base border border-zd-border rounded-panel space-y-2.5 font-mono">
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Sensor Controller:</span>
-              <span className="text-zd-text">{currentSpec.hardware.chip}</span>
+              <span className="text-zd-text">{currentSensor.hardware.chip}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Bus Interface:</span>
-              <span className="text-zd-text">{currentSpec.hardware.bus}</span>
+              <span className="text-zd-text">{currentSensor.hardware.bus}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Telemetry Link:</span>
-              <span className="text-zd-text">{currentSpec.hardware.link}</span>
+              <span className="text-zd-text">{currentSensor.hardware.link}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Power Architecture:</span>
-              <span className="text-sev-normal font-semibold">{currentSpec.hardware.power}</span>
+              <span className="text-sev-normal font-semibold">{currentSensor.hardware.power}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Firmware Release:</span>
-              <span className="text-zd-accent">{currentSpec.hardware.firmware}</span>
+              <span className="text-zd-accent">{currentSensor.hardware.firmware}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zd-muted font-sans">Deployment Sector:</span>
-              <span className="text-zd-text">{currentSpec.hardware.location}</span>
+              <span className="text-zd-text">{currentSensor.hardware.location}</span>
             </div>
           </div>
 
-          <div className="p-3 bg-zd-base border border-zd-border rounded-panel space-y-2">
-            <span className="text-zd-dim font-bold block mb-1">AI Pipeline Integration Formula</span>
-            <div className="p-2 bg-zd-surface rounded border border-zd-border font-mono text-[11px] text-zd-text">
-              {currentSpec.roleFormula}
+          <div className="p-3.5 bg-zd-base border border-zd-border rounded-panel space-y-2">
+            <span className="text-zd-dim font-bold block mb-1">Telemetry Pipeline Formula</span>
+            <div className="p-2.5 bg-zd-surface rounded border border-zd-border font-mono text-[11px] text-zd-text leading-relaxed">
+              {currentSensor.pipelineModel}
             </div>
             <p className="text-[11px] text-zd-muted leading-relaxed">
-              Continuous 50Hz telemetry frames are timestamped and packetized with cryptographic signature before ingestion into ZeroDay's edge LSTM neural network and CatBoost seasonal risk models.
+              Continuous telemetry frames are sampled at edge nodes and ingested into ZeroDay's neural network inference pipeline and rule-based threshold engines.
             </p>
           </div>
         </div>

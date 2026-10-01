@@ -31,6 +31,7 @@ import {
   Navigation
 } from 'lucide-react';
 import { ShelterPoint } from '../../types';
+import clsx from 'clsx';
 
 export const EvacuationPlannerScreen: React.FC = () => {
   const { 
@@ -50,6 +51,7 @@ export const EvacuationPlannerScreen: React.FC = () => {
   const [typedConfirmOpen, setTypedConfirmOpen] = useState(false);
   const [bridgeModalOpen, setBridgeModalOpen] = useState(false);
   const [routeStepsModalOpen, setRouteStepsModalOpen] = useState(false);
+  const [destinationSheetOpen, setDestinationSheetOpen] = useState(false);
 
   // GIS Overlay Layers
   const [layers, setLayers] = useState({
@@ -250,8 +252,8 @@ export const EvacuationPlannerScreen: React.FC = () => {
                 fill="url(#waterHatch)"
               />
               <text
-                x="620"
-                y="745"
+                x="840"
+                y="785"
                 fill="rgba(92, 200, 190, 0.75)"
                 fontSize="11"
                 fontFamily="sans-serif"
@@ -504,169 +506,150 @@ export const EvacuationPlannerScreen: React.FC = () => {
 
       </div>
 
-      {/* 4. TOP HUD BAR: SECTOR INFO & CONTROLS */}
-      <div className="absolute top-4 left-4 right-4 z-10 pointer-events-none flex items-center justify-between gap-4">
-        
-        {/* Left: Sector & Active Route Status */}
-        <div className="pointer-events-auto flex items-center gap-2.5">
-          <div className="bg-zd-surface/90 backdrop-blur-md border border-zd-border rounded-panel px-3.5 py-2 shadow-modal flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-sev-normal animate-pulse" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-micro font-sans text-zd-dim">Evacuation corridor</span>
-                <span className="text-[10px] font-sans px-1.5 py-0.2 bg-sev-normal-dim text-sev-normal rounded font-medium">Dispatch ready</span>
-                <span className="hidden md:inline font-mono text-[10px] text-zd-dim">· 29°45'11" N · 78°32'04" E</span>
+      {/* 4. UNIFIED TOP TOOLBAR */}
+      <div className="absolute top-4 left-4 right-4 z-20 pointer-events-auto">
+        <div className="bg-zd-surface/95 backdrop-blur-md border border-zd-border rounded-panel px-4 py-2 shadow-modal flex items-center justify-between gap-4">
+          
+          {/* Left: Corridor Name + Status */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-sev-normal animate-pulse shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 truncate">
+                <h1 className="font-sans font-semibold text-xs md:text-sm text-zd-text truncate">
+                  Sector 4-B: North Ridge bypass
+                </h1>
+                <span className="text-[10px] font-sans px-1.5 py-0.2 bg-sev-normal/15 text-sev-normal border border-sev-normal/30 rounded font-medium shrink-0">
+                  Dispatch ready
+                </span>
               </div>
-              <h1 className="font-sans font-semibold text-sm text-zd-text">Sector 4-B: North Ridge bypass corridor</h1>
             </div>
           </div>
 
-          {/* Quick Route Telemetry Tag */}
-          <div className="hidden xl:flex items-center gap-3 bg-zd-surface/80 backdrop-blur-md border border-zd-border rounded-panel px-3 py-2 text-xs font-mono text-zd-muted shadow-modal">
+          {/* Center: 3 Stats (Distance, ETA, Climb) as icon + value in data font */}
+          <div className="hidden lg:flex items-center gap-4 text-xs font-mono text-zd-muted shrink-0 tabular-nums">
             <div className="flex items-center gap-1.5">
               <Footprints className="w-3.5 h-3.5 text-zd-accent" />
-              <span>1.8 km ridge track</span>
+              <span className="font-semibold text-zd-text">1.8 km</span>
+              <span className="font-sans text-[11px] text-zd-dim">ridge track</span>
             </div>
-            <span className="text-zd-dim">·</span>
+            <span className="text-zd-border">·</span>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-zd-accent" />
-              <span>~24 min walking ETA</span>
+              <span className="font-semibold text-zd-text">24 min</span>
+              <span className="font-sans text-[11px] text-zd-dim">walk ETA</span>
             </div>
-            <span className="text-zd-dim">·</span>
+            <span className="text-zd-border">·</span>
             <div className="flex items-center gap-1.5">
               <Mountain className="w-3.5 h-3.5 text-zd-accent" />
-              <span>+230m climb to safe ground</span>
+              <span className="font-semibold text-zd-text">+230m</span>
+              <span className="font-sans text-[11px] text-zd-dim">safe climb</span>
             </div>
           </div>
+
+          {/* Right: Layers / Route steps / Havens */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* GIS Layer Menu */}
+            <Popover.Root open={layersOpen} onOpenChange={setLayersOpen}>
+              <Popover.Trigger asChild>
+                <button
+                  className={clsx(
+                    "h-8 px-2.5 rounded-control border flex items-center gap-1.5 font-sans text-xs transition-colors shadow-sm focus:outline-none",
+                    layersOpen 
+                      ? "bg-zd-raised text-zd-accent border-zd-accent" 
+                      : "bg-zd-surface hover:bg-zd-raised text-zd-muted hover:text-zd-text border-zd-border"
+                  )}
+                  title="Toggle layers"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Layers</span>
+                </button>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content
+                  side="bottom"
+                  align="end"
+                  sideOffset={8}
+                  className="z-50 w-60 p-2 bg-zd-surface border border-zd-border rounded-panel shadow-popover text-xs font-sans animate-in fade-in-0 zoom-in-95"
+                >
+                  <span className="text-[11px] font-sans text-zd-dim px-2 py-1 block border-b border-zd-border mb-1">
+                    Terrain & hazard GIS overlays
+                  </span>
+                  <div className="space-y-0.5">
+                    {[
+                      { key: 'satellite' as const, label: 'Shaded relief satellite base' },
+                      { key: 'slope' as const, label: '36° rupture slope hazard' },
+                      { key: 'waterIndex' as const, label: 'NDWI gorge inundation zone' },
+                      { key: 'contours' as const, label: 'Topographic contours (25m)' },
+                      { key: 'meshNodes' as const, label: 'Offline BLE mesh relay nodes' },
+                    ].map(item => (
+                      <button
+                        key={item.key}
+                        onClick={() => toggleLayer(item.key)}
+                        className="w-full h-7 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors focus:outline-none"
+                      >
+                        <span className="text-xs">{item.label}</span>
+                        {layers[item.key] ? (
+                          <Eye className="w-3.5 h-3.5 text-zd-accent" />
+                        ) : (
+                          <EyeOff className="w-3.5 h-3.5 text-zd-dim" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
+
+            {/* Route Steps */}
+            <button
+              onClick={() => setRouteStepsModalOpen(true)}
+              className="h-8 px-2.5 rounded-control bg-zd-surface hover:bg-zd-raised border border-zd-border text-zd-muted hover:text-zd-text flex items-center gap-1.5 font-sans text-xs shadow-sm transition-colors"
+            >
+              <Info className="w-3.5 h-3.5 text-zd-accent" />
+              <span className="hidden sm:inline">Route steps</span>
+            </button>
+
+            {/* Havens */}
+            <button
+              onClick={() => {
+                setShelterDrawerOpen(true);
+                setLayersOpen(false);
+              }}
+              className="h-8 px-2.5 rounded-control bg-zd-surface hover:bg-zd-raised border border-zd-border text-zd-muted hover:text-zd-text flex items-center gap-1.5 font-sans text-xs transition-colors"
+              title="Designated emergency shelters"
+            >
+              <MapPin className="w-3.5 h-3.5 text-sev-normal" />
+              <span>Havens ({shelters.length})</span>
+            </button>
+          </div>
         </div>
-
-        {/* Right: GIS Layers & Havens Ghost Button */}
-        <div className="pointer-events-auto flex items-center gap-2">
-          
-          {/* GIS Layer Menu Popover */}
-          <Popover.Root open={layersOpen} onOpenChange={setLayersOpen}>
-            <Popover.Trigger asChild>
-              <button
-                className={`h-9 px-3 rounded-control border flex items-center gap-2 font-sans text-xs transition-colors shadow-sm focus:outline-none ${
-                  layersOpen 
-                    ? 'bg-zd-raised text-zd-accent border-zd-accent' 
-                    : 'bg-zd-surface/90 hover:bg-zd-raised text-zd-muted hover:text-zd-text border-zd-border'
-                }`}
-                title="Toggle terrain & hazard layers"
-              >
-                <Layers className="w-4 h-4" strokeWidth={1.5} />
-                <span className="hidden sm:inline">Layers</span>
-              </button>
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content
-                side="bottom"
-                align="end"
-                sideOffset={8}
-                className="z-50 w-60 p-2 bg-zd-surface border border-zd-border rounded-panel shadow-popover text-xs font-sans animate-in fade-in-0 zoom-in-95"
-              >
-                <span className="text-[11px] font-sans text-zd-dim px-2 py-1 block border-b border-zd-border mb-1">
-                  Terrain & hazard GIS overlays
-                </span>
-                <div className="space-y-0.5">
-                  {[
-                    { key: 'satellite' as const, label: 'Shaded relief satellite base' },
-                    { key: 'slope' as const, label: '36° rupture slope hazard' },
-                    { key: 'waterIndex' as const, label: 'NDWI gorge inundation zone' },
-                    { key: 'contours' as const, label: 'Topographic contours (25m)' },
-                    { key: 'meshNodes' as const, label: 'Offline BLE mesh relay nodes' },
-                  ].map(item => (
-                    <button
-                      key={item.key}
-                      onClick={() => toggleLayer(item.key)}
-                      className="w-full h-8 px-2 rounded-control flex items-center justify-between hover:bg-zd-hover text-zd-text text-left transition-colors focus:outline-none"
-                    >
-                      <span className="text-xs">{item.label}</span>
-                      {layers[item.key] ? (
-                        <Eye className="w-3.5 h-3.5 text-zd-accent" />
-                      ) : (
-                        <EyeOff className="w-3.5 h-3.5 text-zd-dim" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
-
-          {/* Turn-by-Turn Steps Modal Trigger */}
-          <button
-            onClick={() => setRouteStepsModalOpen(true)}
-            className="h-9 px-3 rounded-control bg-zd-surface/90 hover:bg-zd-raised border border-zd-border text-zd-text flex items-center gap-1.5 font-sans text-xs shadow-sm transition-colors"
-          >
-            <Info className="w-3.5 h-3.5 text-zd-accent" />
-            <span className="hidden sm:inline">Route steps</span>
-          </button>
-
-          {/* Havens Drawer Ghost Button with Count */}
-          <button
-            onClick={() => {
-              setShelterDrawerOpen(true);
-              setLayersOpen(false);
-            }}
-            className="h-9 px-3 rounded-control hover:bg-zd-raised text-zd-muted hover:text-zd-text flex items-center gap-1.5 font-sans text-xs transition-colors"
-            title="Designated emergency shelters"
-          >
-            <MapPin className="w-3.5 h-3.5 text-sev-normal" strokeWidth={1.5} />
-            <span>Havens ({shelters.length})</span>
-          </button>
-        </div>
-
       </div>
 
-      {/* 5. FLOATING BOTTOM COMMAND DOCK (CLEAN, UNCLUTTERED, NO TRUNCATION) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-auto w-full max-w-4xl px-3 sm:px-4">
-        <div className="bg-zd-surface/95 backdrop-blur-xl border border-zd-border/90 rounded-panel px-4 py-2.5 sm:px-6 sm:py-3.5 shadow-modal flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
-          
-          {/* Destination & Route Specs */}
-          <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-control bg-sev-normal-dim border border-sev-normal/50 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-sev-normal" />
-            </div>
+      {/* 5. MINIMAL BOTTOM DOCK: SINGLE PRIMARY CTA (DOES NOT COVER MAP) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+        <div className="flex items-center gap-2 bg-zd-surface/95 backdrop-blur-md border border-zd-border rounded-full p-1.5 shadow-modal">
+          <button
+            onClick={() => setDestinationSheetOpen(true)}
+            className="flex items-center gap-2 pl-3 pr-2 py-1 text-xs font-sans text-zd-muted hover:text-zd-text transition-colors"
+            title="View destination haven details"
+          >
+            <ShieldCheck className="w-4 h-4 text-sev-normal" />
+            <span className="font-semibold text-zd-text whitespace-nowrap">{selectedShelter.name}</span>
+            <span className="font-mono text-[10px] text-sev-normal bg-sev-normal/15 px-1.5 py-0.2 rounded font-medium whitespace-nowrap tabular-nums">
+              {selectedShelter.elevationM}m ASL
+            </span>
+          </button>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-sans font-semibold text-xs sm:text-sm text-zd-text truncate">{selectedShelter.name}</span>
-                <span className="font-mono text-[9px] sm:text-[10px] text-sev-normal bg-sev-normal-dim px-1.5 py-0.5 rounded font-medium shrink-0">
-                  Haven {selectedShelter.elevationM}m
-                </span>
-              </div>
-              <p className="font-mono text-[11px] sm:text-xs text-zd-muted flex items-center gap-1.5 sm:gap-2 mt-0.5">
-                <span>1.8 km</span>
-                <span className="text-zd-dim">·</span>
-                <span>24 min walk</span>
-                <span className="text-zd-dim">·</span>
-                <span className="text-sev-normal font-sans font-normal truncate">Bypasses bridge & 36° slide</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-end shrink-0">
-            <Button
-              variant="outline"
-              onClick={() => setRouteStepsModalOpen(true)}
-              className="h-8 sm:h-9 px-2.5 sm:px-3 font-sans text-xs"
-            >
-              Route details
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={() => setDispatchModalOpen(true)}
-              className="h-8 sm:h-9 px-3 sm:px-4 font-sans text-xs font-semibold gap-1.5 sm:gap-2 shadow-sm"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Transmit route instructions</span>
-              <span className="sm:hidden">Transmit route</span>
-              <span className="font-mono text-[10px] bg-black/20 px-1 py-0.5 rounded text-white/90">1,240</span>
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setDispatchModalOpen(true)}
+            className="h-8 px-4 font-sans text-xs font-semibold gap-2 shadow-sm rounded-full whitespace-nowrap"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Transmit route instructions</span>
+            <span className="font-mono text-[10px] bg-black/25 px-1.5 py-0.2 rounded text-white tabular-nums">1,240</span>
+          </Button>
         </div>
       </div>
 
@@ -784,7 +767,64 @@ export const EvacuationPlannerScreen: React.FC = () => {
         </div>
       </Drawer>
 
-      {/* 8. SUBMERGED BRIDGE CAMERA & TELEMETRY MODAL */}
+      {/* 8. DESTINATION SANCTUARY DETAILS DRAWER */}
+      <Drawer
+        isOpen={destinationSheetOpen}
+        onClose={() => setDestinationSheetOpen(false)}
+        title={selectedShelter.name}
+        subtitle={`Designated High-Ground Haven · ${selectedShelter.wardName}`}
+        width="w-[420px]"
+      >
+        <div className="space-y-4 font-sans text-xs">
+          <div className="p-3.5 bg-zd-base border border-zd-border rounded-panel space-y-2.5 font-mono">
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">Haven Elevation:</span>
+              <span className="text-sev-normal font-semibold font-mono tabular-nums">{selectedShelter.elevationM}m ASL</span>
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">Capacity:</span>
+              <span className="text-zd-text font-mono tabular-nums">{selectedShelter.currentOccupancy} / {selectedShelter.capacity} persons</span>
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">Terrain Stability:</span>
+              <span className="text-zd-text font-sans">{selectedShelter.bedrockStability}</span>
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">Emergency Food/Water:</span>
+              <span className="text-zd-accent font-mono tabular-nums">{selectedShelter.suppliesDays} days reserves</span>
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">On-Site Coordinator:</span>
+              <span className="text-zd-text font-sans">{selectedShelter.contactOfficer}</span>
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-zd-muted font-sans">Hotline:</span>
+              <span className="text-zd-text font-mono tabular-nums">{selectedShelter.contactPhone}</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-zd-base border border-zd-border rounded-panel space-y-1.5">
+            <span className="text-zd-dim font-bold block mb-1">Route & Approach Directives</span>
+            <p className="text-xs text-zd-muted leading-relaxed font-sans">
+              {selectedShelter.routeNotes}
+            </p>
+          </div>
+
+          <Button
+            variant="primary"
+            onClick={() => {
+              setDestinationSheetOpen(false);
+              setDispatchModalOpen(true);
+            }}
+            className="w-full h-9 font-sans text-xs font-semibold gap-2 justify-center"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Transmit route instructions to this haven</span>
+          </Button>
+        </div>
+      </Drawer>
+
+      {/* 9. SUBMERGED BRIDGE CAMERA & TELEMETRY MODAL */}
       <Modal
         isOpen={bridgeModalOpen}
         onClose={() => setBridgeModalOpen(false)}

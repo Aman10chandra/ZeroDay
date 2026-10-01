@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { useStore } from '../../store/useStore';
 import { RescueMap } from './RescueMap';
 import { Modal } from '../../components/ui/Modal';
@@ -27,7 +28,8 @@ import {
   ShieldCheck,
   Flame,
   Waves,
-  Mountain
+  Mountain,
+  MoreHorizontal
 } from 'lucide-react';
 import clsx from 'clsx';
 import { RescueRequest, RescueUrgency, RescueHazardType, StateOfficer } from '../../types';
@@ -218,54 +220,54 @@ export const RescueRequestsScreen: React.FC = () => {
       </header>
 
       {/* 2. Operations Metrics Strip */}
-      <section aria-label="Operations Metrics" className="px-6 py-2.5 border-b border-zd-border bg-zd-raised/60 shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-sans">
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-zd-surface/80 rounded-control border border-zd-border">
-          <div className="w-7 h-7 rounded-control bg-zd-accent/15 border border-zd-accent/30 flex items-center justify-center text-zd-accent shrink-0">
+      <section aria-label="Operations Metrics" className="px-6 py-3 border-b border-zd-border bg-zd-raised/40 shrink-0 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-sans">
+        <div className="p-3 bg-zd-surface rounded-panel border border-zd-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-control bg-zd-accent/15 border border-zd-accent/30 flex items-center justify-center text-zd-accent shrink-0">
             <LifeBuoy className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-[10px] uppercase font-mono text-zd-muted">Distress Signals</div>
-            <div className="font-mono text-sm font-bold text-zd-text">{totalCount} Active</div>
+          <div className="min-w-0">
+            <div className="font-mono text-[28px] font-semibold text-zd-text leading-none tabular-nums">{totalCount}</div>
+            <div className="font-sans text-xs text-zd-muted mt-1 truncate">Distress signals</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-zd-surface/80 rounded-control border border-zd-border">
-          <div className="w-7 h-7 rounded-control bg-sev-critical/20 border border-sev-critical/40 flex items-center justify-center text-sev-critical shrink-0">
+        <div className="p-3 bg-zd-surface rounded-panel border border-zd-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-control bg-sev-critical/15 border border-sev-critical/30 flex items-center justify-center text-sev-critical shrink-0">
             <Flame className="w-4 h-4 animate-pulse" />
           </div>
-          <div>
-            <div className="text-[10px] uppercase font-mono text-zd-muted">Critical Trapped</div>
-            <div className="font-mono text-sm font-bold text-sev-critical">{criticalCount} Urgent</div>
+          <div className="min-w-0">
+            <div className="font-mono text-[28px] font-semibold text-sev-critical leading-none tabular-nums">{criticalCount}</div>
+            <div className="font-sans text-xs text-zd-muted mt-1 truncate">Critical trapped souls</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-zd-surface/80 rounded-control border border-zd-border">
-          <div className="w-7 h-7 rounded-control bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+        <div className="p-3 bg-zd-surface rounded-panel border border-zd-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-control bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
             <Users className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-[10px] uppercase font-mono text-zd-muted">Souls at Risk</div>
-            <div className="font-mono text-sm font-bold text-zd-text">{totalPeopleAtRisk} Citizens</div>
+          <div className="min-w-0">
+            <div className="font-mono text-[28px] font-semibold text-zd-text leading-none tabular-nums">{totalPeopleAtRisk}</div>
+            <div className="font-sans text-xs text-zd-muted mt-1 truncate">Citizens at risk</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-zd-surface/80 rounded-control border border-zd-border">
-          <div className="w-7 h-7 rounded-control bg-zd-accent/15 border border-zd-accent/30 flex items-center justify-center text-zd-accent shrink-0">
+        <div className="p-3 bg-zd-surface rounded-panel border border-zd-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-control bg-zd-accent/15 border border-zd-accent/30 flex items-center justify-center text-zd-accent shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-[10px] uppercase font-mono text-zd-muted">Teams Dispatched</div>
-            <div className="font-mono text-sm font-bold text-zd-accent">{dispatchedCount} Units</div>
+          <div className="min-w-0">
+            <div className="font-mono text-[28px] font-semibold text-zd-accent leading-none tabular-nums">{dispatchedCount}</div>
+            <div className="font-sans text-xs text-zd-muted mt-1 truncate">Teams dispatched</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 px-3 py-1.5 bg-zd-surface/80 rounded-control border border-zd-border">
-          <div className="w-7 h-7 rounded-control bg-sev-safe/15 border border-sev-safe/30 flex items-center justify-center text-sev-safe shrink-0">
+        <div className="p-3 bg-zd-surface rounded-panel border border-zd-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-control bg-sev-safe/15 border border-sev-safe/30 flex items-center justify-center text-sev-safe shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
-          <div>
-            <div className="text-[10px] uppercase font-mono text-zd-muted">Safely Evacuated</div>
-            <div className="font-mono text-sm font-bold text-sev-safe">{rescuedCount} Extricated</div>
+          <div className="min-w-0">
+            <div className="font-mono text-[28px] font-semibold text-sev-safe leading-none tabular-nums">{rescuedCount}</div>
+            <div className="font-sans text-xs text-zd-muted mt-1 truncate">Safely evacuated</div>
           </div>
         </div>
       </section>
@@ -300,63 +302,67 @@ export const RescueRequestsScreen: React.FC = () => {
               />
             </div>
 
-            {/* Quick Filter Chips */}
+            {/* Quick Filter Chips with Dot Indicators */}
             <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-[11px] font-sans">
               <button
                 onClick={() => { setFilterUrgency('all'); setFilterStatus('all'); }}
                 className={clsx(
-                  "px-2.5 py-1 rounded-control border transition-colors shrink-0",
+                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1.5",
                   filterUrgency === 'all' && filterStatus === 'all'
                     ? "bg-zd-raised border-zd-accent/50 text-zd-text font-medium"
                     : "border-zd-border text-zd-muted hover:text-zd-text"
                 )}
               >
-                All ({rescueRequests.length})
+                <span className="w-1.5 h-1.5 rounded-full bg-zd-muted" />
+                <span>All ({rescueRequests.length})</span>
               </button>
               <button
                 onClick={() => { setFilterUrgency('critical'); setFilterStatus('all'); }}
                 className={clsx(
-                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1",
+                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1.5",
                   filterUrgency === 'critical'
                     ? "bg-sev-critical/20 border-sev-critical/60 text-sev-critical font-medium"
                     : "border-zd-border text-zd-muted hover:text-zd-text"
                 )}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-sev-critical animate-ping" />
-                Critical ({rescueRequests.filter(r => r.urgency === 'critical').length})
+                <span className="w-1.5 h-1.5 rounded-full bg-sev-critical animate-pulse" />
+                <span>Critical ({rescueRequests.filter(r => r.urgency === 'critical').length})</span>
               </button>
               <button
                 onClick={() => { setFilterUrgency('all'); setFilterStatus('pending'); }}
                 className={clsx(
-                  "px-2.5 py-1 rounded-control border transition-colors shrink-0",
+                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1.5",
                   filterStatus === 'pending'
                     ? "bg-amber-500/20 border-amber-500/60 text-amber-400 font-medium"
                     : "border-zd-border text-zd-muted hover:text-zd-text"
                 )}
               >
-                Pending ({rescueRequests.filter(r => r.status === 'pending').length})
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>Pending ({rescueRequests.filter(r => r.status === 'pending').length})</span>
               </button>
               <button
                 onClick={() => { setFilterUrgency('all'); setFilterStatus('dispatched'); }}
                 className={clsx(
-                  "px-2.5 py-1 rounded-control border transition-colors shrink-0",
+                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1.5",
                   filterStatus === 'dispatched'
                     ? "bg-zd-accent/20 border-zd-accent/60 text-zd-accent font-medium"
                     : "border-zd-border text-zd-muted hover:text-zd-text"
                 )}
               >
-                Dispatched ({rescueRequests.filter(r => r.status === 'dispatched' || r.status === 'in_progress').length})
+                <span className="w-1.5 h-1.5 rounded-full bg-zd-accent" />
+                <span>Dispatched ({rescueRequests.filter(r => r.status === 'dispatched' || r.status === 'in_progress').length})</span>
               </button>
               <button
                 onClick={() => { setFilterUrgency('all'); setFilterStatus('rescued'); }}
                 className={clsx(
-                  "px-2.5 py-1 rounded-control border transition-colors shrink-0",
+                  "px-2.5 py-1 rounded-control border transition-colors shrink-0 flex items-center gap-1.5",
                   filterStatus === 'rescued'
                     ? "bg-sev-safe/20 border-sev-safe/60 text-sev-safe font-medium"
                     : "border-zd-border text-zd-muted hover:text-zd-text"
                 )}
               >
-                Rescued ({rescueRequests.filter(r => r.status === 'rescued').length})
+                <span className="w-1.5 h-1.5 rounded-full bg-sev-safe" />
+                <span>Rescued ({rescueRequests.filter(r => r.status === 'rescued').length})</span>
               </button>
             </div>
           </div>
@@ -383,129 +389,159 @@ export const RescueRequestsScreen: React.FC = () => {
                       "p-3.5 rounded-panel border transition-all duration-150 cursor-pointer text-xs font-sans relative group",
                       isSelected 
                         ? "bg-zd-raised border-zd-accent shadow-sm" 
-                        : "bg-zd-surface border-zd-border hover:border-zd-border-high hover:bg-zd-hover"
+                        : "bg-zd-surface border-zd-border hover:border-zd-border-focus hover:bg-zd-hover"
                     )}
                   >
-                    {/* Top row: SOS Code, Urgency Pill, Status */}
+                    {/* Header = ID + Ward (muted) + Status (dot + sentence case, filled badge ONLY if Critical) */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className={clsx(
-                          "w-2 h-2 rounded-full",
-                          isRescued ? "bg-sev-safe" : isCritical ? "bg-sev-critical animate-ping" : "bg-sev-warning"
-                        )} />
-                        <span className="font-mono text-xs font-bold text-zd-text tracking-wide">{req.code}</span>
-                        <span className="text-[11px] text-zd-muted font-sans">• {req.wardName}</span>
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono text-xs font-semibold text-zd-text tracking-wide tabular-nums">{req.code}</span>
+                        <span className="text-zd-dim">·</span>
+                        <span className="text-xs text-zd-muted font-sans truncate">{req.wardName}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <span className={clsx(
-                          "px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase leading-none",
-                          isRescued ? "bg-sev-safe/20 text-sev-safe border border-sev-safe/30" :
-                          isDispatched ? "bg-zd-accent/20 text-zd-accent border border-zd-accent/30" :
-                          isCritical ? "bg-sev-critical/20 text-sev-critical border border-sev-critical/30" :
-                          "bg-sev-warning/20 text-sev-warning border border-sev-warning/30"
-                        )}>
-                          {req.status.replace('_', ' ')}
-                        </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isCritical && req.status !== 'rescued' ? (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-sans font-semibold bg-sev-critical text-white flex items-center gap-1 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            <span>Critical</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-sans text-zd-muted">
+                            <span className={clsx(
+                              "w-2 h-2 rounded-full",
+                              isRescued ? "bg-sev-safe" : isDispatched ? "bg-zd-accent" : "bg-sev-warning"
+                            )} />
+                            <span className="capitalize">{req.status.replace('_', ' ')}</span>
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Citizen Name & Persons Count */}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="font-semibold text-zd-text text-sm flex items-center gap-2">
-                        <span>{req.citizenName}</span>
-                      </div>
-                      <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-zd-raised border border-zd-border text-zd-text flex items-center gap-1">
+                    {/* Body = Name + Souls Count */}
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-semibold text-zd-text text-sm truncate">{req.citizenName}</span>
+                      <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-zd-raised border border-zd-border text-zd-text flex items-center gap-1 whitespace-nowrap tabular-nums shrink-0">
                         <Users className="w-3 h-3 text-zd-accent" />
-                        <span>{req.peopleCount} souls</span>
+                        <span>{req.peopleCount} {req.peopleCount === 1 ? 'soul' : 'souls'}</span>
                       </span>
                     </div>
 
-                    {/* Situation Narrative */}
+                    {/* One-line Description (Clamped to 2 lines) */}
                     <p className="text-zd-muted text-xs line-clamp-2 leading-relaxed mb-2">
                       {req.situation}
                     </p>
 
-                    {/* Vulnerability Alert if any */}
+                    {/* Single Highlighted Vulnerability Line */}
                     {req.vulnerableDetails && (
-                      <div className="text-[11px] text-sev-warning bg-sev-warning/10 border border-sev-warning/25 px-2 py-1 rounded mb-2 font-medium flex items-center gap-1.5">
+                      <div className="text-[11px] text-sev-warning bg-sev-warning/10 border border-sev-warning/25 px-2.5 py-1 rounded mb-2 font-medium flex items-center gap-1.5 truncate">
                         <AlertTriangle className="w-3 h-3 shrink-0" />
                         <span className="truncate">{req.vulnerableDetails}</span>
                       </div>
                     )}
 
-                    {/* Metadata strip: Phone, Battery, Time */}
-                    <div className="flex items-center justify-between text-[11px] text-zd-dim pt-2 border-t border-zd-border/60">
-                      <div className="flex items-center gap-2.5">
-                        <span className="flex items-center gap-1">
+                    {/* Footer Row: Phone, Battery, Time in ONE muted row */}
+                    <div className="flex items-center justify-between text-xs text-zd-dim pt-2 border-t border-zd-border/60">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 font-mono tabular-nums text-zd-muted">
                           <Phone className="w-3 h-3 text-zd-accent" />
                           <span>{req.phone}</span>
                         </span>
                         {req.batteryPct !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <Battery className={clsx("w-3 h-3", req.batteryPct < 25 ? "text-sev-critical" : "text-zd-muted")} />
+                          <span className="flex items-center gap-1 font-mono tabular-nums">
+                            <Battery className={clsx("w-3 h-3", req.batteryPct < 25 ? "text-sev-critical" : "text-zd-dim")} />
                             <span>{req.batteryPct}%</span>
                           </span>
                         )}
                       </div>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 font-mono text-[11px] tabular-nums text-zd-dim">
                         <Clock className="w-3 h-3" />
                         <span>{req.timestamp}</span>
                       </span>
                     </div>
 
-                    {/* Assignment status / Assigned Team badge */}
-                    {req.assignedOfficerName ? (
-                      <div className="mt-2.5 px-2.5 py-1.5 rounded-control bg-zd-accent/10 border border-zd-accent/25 flex items-center justify-between text-[11px]">
-                        <span className="text-zd-accent font-medium flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>{req.assignedOfficerName}</span>
-                        </span>
-                        <span className="text-zd-dim text-[10px] font-mono">{req.assignedUnit}</span>
-                      </div>
-                    ) : (
-                      <div className="mt-2.5 px-2.5 py-1.5 rounded-control bg-sev-critical/10 border border-sev-critical/25 flex items-center justify-between text-[11px]">
-                        <span className="text-sev-critical font-medium flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>No Team Assigned</span>
-                        </span>
-                        <button
+                    {/* State Action: ONE primary action per state + Overflow "..." menu */}
+                    <div className="mt-2.5 pt-2 border-t border-zd-border/60 flex items-center justify-between gap-2">
+                      {/* State 1: Pending -> Dispatch primary button */}
+                      {req.status === 'pending' && (
+                        <Button
+                          variant="primary"
+                          size="sm"
                           onClick={(e) => { e.stopPropagation(); handleOpenDispatch(req); }}
-                          className="px-2 py-0.5 rounded bg-sev-critical text-white font-semibold text-[10px] hover:bg-sev-critical-hover transition-colors"
+                          className="flex-1 h-8 text-xs font-semibold gap-1.5 justify-center"
                         >
-                          Dispatch Now
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Quick Card Action Buttons */}
-                    <div className="mt-2.5 flex items-center gap-1.5 pt-2 border-t border-zd-border/60">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleOpenDispatch(req); }}
-                        className="flex-1 py-1 px-2 text-[11px] rounded bg-zd-raised hover:bg-zd-hover text-zd-text border border-zd-border transition-colors font-medium flex items-center justify-center gap-1"
-                      >
-                        <ShieldAlert className="w-3 h-3 text-zd-accent" />
-                        <span>{req.assignedOfficerId ? 'Reassign' : 'Dispatch'}</span>
-                      </button>
-
-                      {req.status !== 'rescued' && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleMarkRescued(req); }}
-                          className="py-1 px-2.5 text-[11px] rounded bg-sev-safe/20 hover:bg-sev-safe/30 text-sev-safe border border-sev-safe/40 transition-colors font-medium flex items-center gap-1"
-                          title="Mark Citizen Safe & Extricated"
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Mark Safe</span>
-                        </button>
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                          <span>Dispatch</span>
+                        </Button>
                       )}
 
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleSendPing(req); }}
-                        className="p-1 px-2 text-[11px] rounded bg-zd-raised hover:bg-zd-hover text-zd-muted hover:text-zd-text border border-zd-border transition-colors"
-                        title="Send Satellite Ping"
-                      >
-                        <Radio className="w-3 h-3" />
-                      </button>
+                      {/* State 2: Dispatched -> Team info */}
+                      {isDispatched && (
+                        <div className="flex-1 px-2.5 py-1.5 rounded bg-zd-raised border border-zd-border flex items-center justify-between text-xs min-w-0">
+                          <span className="text-zd-accent font-medium flex items-center gap-1.5 truncate">
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">{req.assignedOfficerName || 'Team Dispatched'}</span>
+                          </span>
+                          <span className="text-zd-dim text-[11px] font-mono shrink-0 ml-2">{req.assignedUnit || 'SAR'}</span>
+                        </div>
+                      )}
+
+                      {/* State 3: Rescued -> Safe confirmation badge */}
+                      {isRescued && (
+                        <div className="flex-1 px-2.5 py-1.5 rounded bg-sev-safe/10 border border-sev-safe/25 flex items-center gap-1.5 text-xs text-sev-safe">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Extricated & safe</span>
+                        </div>
+                      )}
+
+                      {/* Overflow "..." menu for secondary actions */}
+                      <Popover.Root>
+                        <Popover.Trigger asChild>
+                          <button
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-8 h-8 rounded-control bg-zd-raised hover:bg-zd-hover text-zd-muted hover:text-zd-text border border-zd-border flex items-center justify-center transition-colors shrink-0"
+                            title="More actions"
+                            aria-label="More actions"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </Popover.Trigger>
+                        <Popover.Portal>
+                          <Popover.Content
+                            onClick={(e) => e.stopPropagation()}
+                            side="top"
+                            align="end"
+                            sideOffset={4}
+                            className="z-50 w-44 p-1.5 bg-zd-surface border border-zd-border rounded-panel shadow-popover text-xs font-sans space-y-1 animate-in fade-in-0 zoom-in-95"
+                          >
+                            {req.status !== 'rescued' && (
+                              <button
+                                onClick={() => handleMarkRescued(req)}
+                                className="w-full px-2.5 py-1.5 rounded-control text-left hover:bg-zd-hover text-sev-safe flex items-center gap-2 transition-colors"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Mark safe</span>
+                              </button>
+                            )}
+                            {isDispatched && (
+                              <button
+                                onClick={() => handleOpenDispatch(req)}
+                                className="w-full px-2.5 py-1.5 rounded-control text-left hover:bg-zd-hover text-zd-text flex items-center gap-2 transition-colors"
+                              >
+                                <ShieldAlert className="w-3.5 h-3.5 text-zd-accent" />
+                                <span>Reassign team</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleSendPing(req)}
+                              className="w-full px-2.5 py-1.5 rounded-control text-left hover:bg-zd-hover text-zd-muted hover:text-zd-text flex items-center gap-2 transition-colors"
+                            >
+                              <Radio className="w-3.5 h-3.5 text-zd-accent" />
+                              <span>Send beacon ping</span>
+                            </button>
+                          </Popover.Content>
+                        </Popover.Portal>
+                      </Popover.Root>
                     </div>
                   </div>
                 );

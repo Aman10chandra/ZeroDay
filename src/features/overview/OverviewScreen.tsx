@@ -82,18 +82,31 @@ export const OverviewScreen: React.FC = () => {
 
         {/* 2. Top-Left Headline Stat */}
         <div className="absolute top-5 left-5 z-20 pointer-events-none">
-          <div className="p-3 bg-zd-surface/90 border border-zd-border shadow-sm backdrop-blur-md rounded-panel max-w-sm">
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-hero font-light text-zd-text tracking-tight leading-none">
+          <div className="p-3.5 bg-zd-surface/92 border border-zd-border shadow-sm backdrop-blur-md rounded-panel max-w-sm">
+            <div className="flex items-baseline gap-2.5">
+              <span className="font-mono text-[28px] font-semibold text-zd-text tracking-tight leading-none tabular-nums">
                 {attentionCount}
               </span>
-              <span className="font-sans text-sm text-zd-muted font-normal leading-tight">
+              <span className="font-sans text-xs font-semibold text-zd-text leading-tight">
                 wards need attention
               </span>
             </div>
-            <p className="font-sans text-xs text-zd-dim mt-2 leading-relaxed">
-              {criticalCount} critical, {warningCount} warning, {advisoryCount} advisory
-            </p>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-zd-border/60 text-xs font-sans">
+              <span className="flex items-center gap-1.5 text-sev-critical font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-sev-critical" />
+                <span>{criticalCount} critical</span>
+              </span>
+              <span className="text-zd-dim">·</span>
+              <span className="flex items-center gap-1.5 text-sev-warning font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-sev-warning" />
+                <span>{warningCount} warning</span>
+              </span>
+              <span className="text-zd-dim">·</span>
+              <span className="flex items-center gap-1.5 text-sev-advisory font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-sev-advisory" />
+                <span>{advisoryCount} advisory</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -341,6 +354,12 @@ export const OverviewScreen: React.FC = () => {
                 const isSelected = selectedWardId === ward.id;
                 const isCritical = ward.riskLevel === 'critical';
                 const isWarning = ward.riskLevel === 'warning';
+                const shortName = ward.name
+                  .replace(' Lowlands', '')
+                  .replace(' Gully', '')
+                  .replace(' Roadway', '')
+                  .replace(' Upper Foothills', ' Foothills')
+                  .replace(' Basin 4B', ' 4B');
 
                 return (
                   <div
@@ -349,39 +368,36 @@ export const OverviewScreen: React.FC = () => {
                     onClick={() => selectWard(ward.id)}
                     onMouseEnter={() => setHoveredWardId(ward.id)}
                     onMouseLeave={() => setHoveredWardId(null)}
-                    className={`p-3.5 flex items-center justify-between cursor-pointer transition-colors ${
+                    className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${
                       isSelected ? 'bg-zd-raised' : 'hover:bg-zd-hover'
                     }`}
                   >
-                    <div className="flex items-center gap-3 truncate min-w-0 pr-3">
-                      <SeverityDot level={ward.riskLevel} pulse={isCritical} />
-                      <div className="truncate">
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="font-sans text-xs font-semibold text-zd-text truncate">
-                            {ward.name}
-                          </span>
-                          <span className={clsx(
-                            "text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-bold tracking-wider shrink-0",
-                            ward.riskLevel === 'critical' ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30" :
-                            ward.riskLevel === 'warning' ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30" :
-                            ward.riskLevel === 'advisory' ? "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30" :
-                            "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                          )}>
-                            {ward.riskLevel}
-                          </span>
-                        </div>
-                        <span className="font-mono text-[10px] text-zd-dim block mt-0.5">
-                          Score {ward.riskScore}/100 · {ward.householdsAtRisk.toLocaleString()} households
+                    <div className="min-w-0 pr-3 truncate">
+                      {/* Line 1: Name + Severity Dot */}
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-sans text-xs font-semibold text-zd-text truncate">
+                          {shortName}
                         </span>
+                        <SeverityDot level={ward.riskLevel} pulse={isCritical} />
+                        {isCritical && (
+                          <span className="text-[10px] font-sans font-semibold px-1.5 py-0.2 rounded bg-sev-critical text-white shrink-0">
+                            Critical
+                          </span>
+                        )}
+                      </div>
+                      {/* Line 2: 89/100 · 1,240 households (Secondary) */}
+                      <div className="font-mono text-xs text-zd-muted mt-0.5 tabular-nums">
+                        {ward.riskScore}/100 · {ward.householdsAtRisk.toLocaleString()} households
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 font-mono text-xs text-zd-muted shrink-0 bg-zd-base px-2 py-1 rounded border border-zd-border">
-                      <span>{ward.rainfall1h} mm/h</span>
+                    {/* Right-aligned Rate in Data Font with Trend Arrow */}
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-zd-text tabular-nums shrink-0">
+                      <span className="font-semibold">{ward.rainfall1h.toFixed(1)} mm/h</span>
                       {isCritical || isWarning ? (
-                        <ArrowUpRight className="w-3.5 h-3.5 text-sev-critical" />
+                        <ArrowUpRight className="w-3.5 h-3.5 text-sev-critical shrink-0" />
                       ) : (
-                        <ArrowDownRight className="w-3.5 h-3.5 text-zd-dim" />
+                        <ArrowDownRight className="w-3.5 h-3.5 text-zd-dim shrink-0" />
                       )}
                     </div>
                   </div>

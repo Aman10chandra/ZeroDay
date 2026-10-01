@@ -130,7 +130,9 @@ export const TopBar: React.FC = () => {
               aria-label="System status"
             >
               <span className={`w-2 h-2 rounded-full ${systemHealth.dotColor} ${systemHealth.isCritical ? 'animate-soft-pulse' : ''}`} />
-              <span className="font-medium hidden md:inline">{systemHealth.label}</span>
+              <span className="font-medium hidden md:inline">
+                {activeScreen === 'overview' && systemHealth.isCritical ? 'System status' : systemHealth.label}
+              </span>
               <ChevronDown className="w-3 h-3 text-zd-dim" />
             </button>
           </Popover.Trigger>
